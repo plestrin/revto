@@ -4,7 +4,10 @@ CFLAGS	:= -W -Wall -pedantic -Wextra -O3 -std=c99
 
 .PHONY: clean
 
-all: $(EXE)
+all: build $(EXE)
+
+build:
+	mkdir -p build
 
 $(EXE): build/searchCryptoCst.o build/util.o build/multiColumn.o build/cst.o
 	$(CC) -o $@ $^
@@ -16,5 +19,5 @@ build/%.o: ../shared/%.c
 	$(CC) -o $@ -c $< $(CFLAGS)
 		
 clean:
-	@ rm -f build/*.o
+	@ rm -rf build
 	@ rm -f $(EXE)
