@@ -28,7 +28,7 @@ void* mapFile_map(const char* file_name, uint64_t* size){
 	*size = sb.st_size;
 	buffer = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, file, 0);
 	close(file);
-	if (buffer == NULL){
+	if (buffer == MAP_FAILED){
 		log_err("Unable to map file");
 	}
 
@@ -76,7 +76,7 @@ int32_t fileChunk_get_next(struct fileChunk* chunk){
 
 	map_length = (chunk->file_length - chunk->offset > FILECHUNCK_MAX_LENGTH) ? FILECHUNCK_MAX_LENGTH : (chunk->file_length - chunk->offset);
 	chunk->buffer = mmap(NULL,  map_length, PROT_READ, MAP_PRIVATE, chunk->file, chunk->offset);
-	if (chunk->buffer == NULL){
+	if (chunk->buffer == MAP_FAILED){
 		close(chunk->file);
 		log_err("Unable to map file");
 		return -1;
