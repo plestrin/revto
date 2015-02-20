@@ -5,11 +5,11 @@
 
 #include "util.h"
 
-#define TWOFISH_NB_ROUND			20
+#define TWOFISH_NB_ROUND_KEY		40
 
-#define TWOFISH_ROUND_KEY_NB_BIT 	64 * TWOFISH_NB_ROUND
-#define TWOFISH_ROUND_KEY_NB_BYTE 	8 * TWOFISH_NB_ROUND
-#define TWOFISH_ROUND_KEY_NB_WORD 	2 * TWOFISH_NB_ROUND
+#define TWOFISH_ROUND_KEY_NB_BIT 	(32 * TWOFISH_NB_ROUND_KEY)
+#define TWOFISH_ROUND_KEY_NB_BYTE 	(4 * TWOFISH_NB_ROUND_KEY)
+#define TWOFISH_ROUND_KEY_NB_WORD 	TWOFISH_NB_ROUND_KEY
 
 #define TWOFISH_128_NB_BIT_KEY 		128
 #define TWOFISH_128_NB_BYTE_KEY		16
@@ -366,7 +366,7 @@ static int32_t attack128(uint8_t* buffer, uint8_t* key, uint32_t offset){
 		l1 = j;
 		l0 = SBOX[box_index[3][i]][p1 ^ l1] ^ c1;
 
-		for (j = 1; j < TWOFISH_NB_ROUND; j++){
+		for (j = 1; j < TWOFISH_NB_ROUND_KEY / 2; j++){
 			if ((SBOX[box_index[3][i]][SBOX[box_index[2][i]][2*j + offset] ^ l1] ^ l0) != buffer[4*(offset + 2*j) + i]){
 				j = l1;
 				goto R0;
@@ -458,7 +458,7 @@ static int32_t attack192(uint8_t* buffer, uint8_t* key, uint32_t offset){
 		l0 = j;
 		l1 = SBOX[box_index[2][i]][SBOX[box_index[1][i]][0 + offset] ^ l2] ^ c1;
 
-		for (j = 1; j < TWOFISH_NB_ROUND; j++){
+		for (j = 1; j < TWOFISH_NB_ROUND_KEY / 2; j++){
 			if ((SBOX[box_index[3][i]][SBOX[box_index[2][i]][SBOX[box_index[1][i]][2*j + offset] ^ l2] ^ l1] ^ l0) != buffer[4*(offset + 2*j) + i]){
 				j = l0;
 				goto R0;
@@ -539,8 +539,13 @@ static int32_t attack256(uint8_t* buffer, uint8_t* key, uint32_t offset){
 	uint8_t 	l3;
 	uint8_t 	v1;
 	uint8_t 	v2;
+	uint8_t 	v1_0;
+	uint8_t 	v2_0;
 
 	for (i = 0; i < 4; i++){
+		v1_0 = SBOX[box_index[0][i]][0 + offset];
+		v2_0 = SBOX[box_index[0][i]][4 + offset];
+
 		for (j = 0; j <= 0x000000ff; j++){
 			c1 = IBOX[box_index[3][i]][buffer[4*(offset + 0) + i] ^ (uint8_t)j];
 			c2 = IBOX[box_index[3][i]][buffer[4*(offset + 2) + i] ^ (uint8_t)j];
@@ -553,13 +558,10 @@ static int32_t attack256(uint8_t* buffer, uint8_t* key, uint32_t offset){
 				l3 = twofish256_meet_table->keys[offset][i][twofish256_meet_table->entries[offset][i][xa].key_offset + 2*k + 0];
 				l2 = twofish256_meet_table->keys[offset][i][twofish256_meet_table->entries[offset][i][xa].key_offset + 2*k + 1];
 
-				v1 = l3 ^ SBOX[box_index[0][i]][0 + offset];
-				v1 = l2 ^ SBOX[box_index[1][i]][v1];
+				v1 = SBOX[box_index[2][i]][SBOX[box_index[1][i]][v1_0 ^ l3] ^ l2];
+				v2 = SBOX[box_index[2][i]][SBOX[box_index[1][i]][v2_0 ^ l3] ^ l2];
 
-				v2 = l3 ^ SBOX[box_index[0][i]][4 + offset];
-				v2 = l2 ^ SBOX[box_index[1][i]][v2];
-
-				if ((SBOX[box_index[2][i]][v1] ^ SBOX[box_index[2][i]][v2]) == xb){
+				if ((v1 ^ v2) == xb){
 					goto C0;
 				}
 				R0:;
@@ -570,9 +572,9 @@ static int32_t attack256(uint8_t* buffer, uint8_t* key, uint32_t offset){
 
 		C0:
 		l0 = j;
-		l1 = SBOX[box_index[2][i]][SBOX[box_index[1][i]][SBOX[box_index[0][i]][0 + offset] ^ l3] ^ l2] ^ c1;
+		l1 = v1 ^ c1;
 
-		for (j = 1; j < TWOFISH_NB_ROUND; j++){
+		for (j = 1; j < TWOFISH_NB_ROUND_KEY / 2; j++){
 			v1 = l3 ^ SBOX[box_index[0][i]][2*j + offset];
 			v1 = l2 ^ SBOX[box_index[1][i]][v1];
 			v1 = l1 ^ SBOX[box_index[2][i]][v1];
@@ -608,7 +610,7 @@ void search_twofish_key(struct fileChunk* chunk, struct multiColumnPrinter* prin
 	for (i = 0; i < chunk->length - TWOFISH_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 		round_key = (uint32_t*)(chunk->buffer + i);
 
-		for (j = 0; j < TWOFISH_NB_ROUND; j++){
+		for (j = 0; j < TWOFISH_NB_ROUND_KEY / 2; j++){
 			uint32_t a;
 			uint32_t b;
 
