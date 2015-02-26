@@ -9,7 +9,7 @@ all: build $(EXE)
 build:
 	mkdir -p build
 
-$(EXE): build/searchCryptoKey.o build/util.o build/multiColumn.o build/key_aes.o build/key_serpent.o build/key_des.o build/key_twofish.o
+$(EXE): build/searchCryptoKey.o build/util.o build/multiColumn.o build/key_aes.o build/key_serpent.o build/key_des.o build/key_twofish.o build/msg_sha.o
 	$(CC) -o $@ $^
 
 build/%.o: src/%.c
@@ -19,5 +19,5 @@ build/%.o: ../shared/%.c
 	$(CC) -o $@ -c $< $(CFLAGS)
 		
 clean:
-	@ rm -f *.o
+	@ rm -rf build
 	@ rm -f $(EXE)

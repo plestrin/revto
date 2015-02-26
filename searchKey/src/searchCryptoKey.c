@@ -9,9 +9,10 @@
 #include "key_serpent.h"
 #include "key_des.h"
 #include "key_twofish.h"
+#include "msg_sha.h"
 
 void(*key_handler_buffer[])(struct fileChunk*,struct multiColumnPrinter*) = {
-	search_AES128_enc_key_big_endian,
+	/*search_AES128_enc_key_big_endian,
 	search_AES128_dec_key_big_endian,
 	search_AES128_enc_key_little_endian,
 	search_AES128_dec_key_little_endian,
@@ -24,8 +25,9 @@ void(*key_handler_buffer[])(struct fileChunk*,struct multiColumnPrinter*) = {
 	search_AES256_enc_key_little_endian,
 	search_AES256_dec_key_little_endian,
 	search_serpent_key,
-	/*search_des_key*/
-	search_twofish_key,
+	search_des_key,
+	search_twofish_key,*/
+	search_sha1_msg,
 	NULL
 };
 
@@ -56,6 +58,10 @@ int main(int32_t argc, char** argv){
 		log_err("unable to init Twofish key");
 		return 0;
 	}
+	if (init_sha_msg){
+		log_err("unable to init Twofish key");
+		return 0;
+	}
 
 	printer = multiColumnPrinter_create(stdout, 6, NULL, NULL, NULL);
 	if (printer == NULL){
@@ -76,7 +82,7 @@ int main(int32_t argc, char** argv){
 		multiColumnPrinter_set_title(printer, 2, "ENDIAN");
 		multiColumnPrinter_set_title(printer, 3, "DEC-ENC");
 		multiColumnPrinter_set_title(printer, 4, "OFFSET");
-		multiColumnPrinter_set_title(printer, 5, "KEY");
+		multiColumnPrinter_set_title(printer, 5, "KEY/MSG");
 		
 		multiColumnPrinter_print_header(printer);
 
@@ -97,6 +103,7 @@ int main(int32_t argc, char** argv){
 	clean_serpent_key;
 	clean_des_key;
 	clean_twofish_key;
+	clean_sha_msg;
 
 	return 0;
 }

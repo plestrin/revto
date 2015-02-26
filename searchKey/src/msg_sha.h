@@ -1,0 +1,15 @@
+#ifndef MSG_SHA1_H
+#define MSG_SHA1_H
+
+#include <stdint.h>
+
+#include "util.h"
+#include "multiColumn.h"
+
+#define init_sha_msg 0
+
+void search_sha1_msg(struct fileChunk* chunk, struct multiColumnPrinter* printer);
+
+#define clean_sha_msg
+
+#endif
