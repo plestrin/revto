@@ -12,7 +12,7 @@
 #include "msg_sha.h"
 
 void(*key_handler_buffer[])(struct fileChunk*,struct multiColumnPrinter*) = {
-	/*search_AES128_enc_key_big_endian,
+	search_AES128_enc_key_big_endian,
 	search_AES128_dec_key_big_endian,
 	search_AES128_enc_key_little_endian,
 	search_AES128_dec_key_little_endian,
@@ -26,8 +26,10 @@ void(*key_handler_buffer[])(struct fileChunk*,struct multiColumnPrinter*) = {
 	search_AES256_dec_key_little_endian,
 	search_serpent_key,
 	search_des_key,
-	search_twofish_key,*/
+	/*search_twofish_key,*/ /* it is still very slow thus I disable it by default */
 	search_sha1_msg,
+	search_sha256_msg,
+	search_sha512_msg,
 	NULL
 };
 
