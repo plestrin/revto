@@ -6,6 +6,8 @@
 
 #include "util.h"
 
+#define DES_DUMP_RAW_KEY 		0
+
 #define DES_KEY_NB_BIT 			64
 #define DES_KEY_NB_BYTE 		8
 #define DES_KEY_NB_WORD 		2
@@ -14,7 +16,16 @@
 #define DES_ROUND_KEY_NB_BYTE 	128
 #define DES_ROUND_KEY_NB_WORD 	32
 
-static void des_get_key(uint8_t* intern, uint8_t* key);
+#define DES_NB_BLACK_LISTED_KEY 4
+
+static const uint8_t black_listed_key[DES_NB_BLACK_LISTED_KEY][DES_KEY_NB_BYTE] = {
+	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+	{0xff, 0xff, 0xff, 0xf0, 0xff, 0xff, 0xff, 0xf0},
+	{0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xf0},
+	{0xff, 0xff, 0xff, 0xf0, 0x00, 0x00, 0x00, 0x00}
+};
+
+static void des_get_key(const uint8_t* intern, uint8_t* key);
 
 static const uint8_t p1[] = {
 	7, 15, 23, 59, 55, 47, 39, 0,
@@ -256,9 +267,6 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 	}
 
 	for (i = 0; i < chunk->length - DES_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
-		if (!memcmp(chunk->buffer + i, chunk->buffer + i + 16, 16)){
-			continue;
-		}
 
 		/* FORWARD FMT1 */
 		round_key = (uint8_t*)(chunk->buffer + i);
@@ -270,7 +278,7 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 
 		found = 1;
 
-		for (j = 0; j < 16; j++, round_key += 8){
+		for (j = 0; j < 16 && found; j++, round_key += 8){
 			des_load_round_key_forward_fmt1(round_key, tmp2);
 
 			memset(cd, 0, 8);
@@ -306,9 +314,24 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 		}
 
 		if (found){
+			for (k = 0; k < DES_NB_BLACK_LISTED_KEY; k++){
+				if (!memcmp(tmp1, black_listed_key[k], DES_KEY_NB_BYTE)){
+					found = 0;
+					break;
+				}
+			}
+		}
+
+		if (found){
 			des_get_key((uint8_t*)tmp1, key);
 			sprintBuffer_raw(key_str, (char*)key, DES_KEY_NB_BYTE);
 			multiColumnPrinter_print(printer, chunk->file_name, "DES", "-", "enc", chunk->offset + i, key_str);
+
+			#if DES_DUMP_RAW_KEY == 1
+			des_load_round_key_forward_fmt1((uint8_t*)(chunk->buffer + i), tmp2);
+			sprintBuffer_raw(key_str, (char*)tmp1, DES_KEY_NB_BYTE);
+			log_info_m("FORWARD FMT1 raw first round key: %s (turn DES_DUMP_RAW_KEY to 0 to disable this feature)", key_str);
+			#endif
 		}
 
 		/* FORWARD FMT2 */
@@ -321,7 +344,7 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 
 		found = 1;
 
-		for (j = 0; j < 16; j++, round_key += 8){
+		for (j = 0; j < 16 && found; j++, round_key += 8){
 			des_load_round_key_forward_fmt2(round_key, tmp2);
 
 			memset(cd, 0, 8);
@@ -357,9 +380,24 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 		}
 
 		if (found){
+			for (k = 0; k < DES_NB_BLACK_LISTED_KEY; k++){
+				if (!memcmp(tmp1, black_listed_key[k], DES_KEY_NB_BYTE)){
+					found = 0;
+					break;
+				}
+			}
+		}
+
+		if (found){
 			des_get_key((uint8_t*)tmp1, key);
 			sprintBuffer_raw(key_str, (char*)key, DES_KEY_NB_BYTE);
 			multiColumnPrinter_print(printer, chunk->file_name, "DES", "-", "enc", chunk->offset + i, key_str);
+
+			#if DES_DUMP_RAW_KEY == 1
+			des_load_round_key_forward_fmt2((uint8_t*)(chunk->buffer + i), tmp2);
+			sprintBuffer_raw(key_str, (char*)tmp1, DES_KEY_NB_BYTE);
+			log_info_m("FORWARD FMT2 raw first round key: %s (turn DES_DUMP_RAW_KEY to 0 to disable this feature)", key_str);
+			#endif
 		}
 
 		/* BACKWARD FMT1 */
@@ -372,7 +410,7 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 
 		found = 1;
 
-		for (j = 0; j < 16; j++, round_key -= 8){
+		for (j = 0; j < 16 && found ; j++, round_key -= 8){
 			des_load_round_key_backward_fmt1(round_key, tmp2);
 
 			memset(cd, 0, 8);
@@ -407,16 +445,30 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 			mask_d |=  mask[2 * j + 1];
 		}
 
+		if (found){
+			for (k = 0; k < DES_NB_BLACK_LISTED_KEY; k++){
+				if (!memcmp(tmp1, black_listed_key[k], DES_KEY_NB_BYTE)){
+					found = 0;
+					break;
+				}
+			}
+		}
 
 		if (found){
 			des_get_key((uint8_t*)tmp1, key);
 			sprintBuffer_raw(key_str, (char*)key, DES_KEY_NB_BYTE);
 			multiColumnPrinter_print(printer, chunk->file_name, "DES", "-", "dec", chunk->offset + i, key_str);
+
+			#if DES_DUMP_RAW_KEY == 1
+			des_load_round_key_backward_fmt1((uint8_t*)(chunk->buffer + i + 8 * 15), tmp2);
+			sprintBuffer_raw(key_str, (char*)tmp1, DES_KEY_NB_BYTE);
+			log_info_m("BACKWARD FMT 1 raw first round key: %s (turn DES_DUMP_RAW_KEY to 0 to disable this feature)", key_str);
+			#endif
 		}
 	}
 }
 
-static void des_get_key(uint8_t* intern, uint8_t* key){
+static void des_get_key(const uint8_t* intern, uint8_t* key){
 	uint32_t j;
 
 	memset(key, 0, DES_KEY_NB_BYTE);
