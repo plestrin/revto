@@ -86,10 +86,10 @@ void search_sha1_msg(struct fileChunk* chunk, struct multiColumnPrinter* printer
 
 		sprintBuffer_raw_inv_endian(msg_str, (char*)msg_buffer, SHA1_MSG_NB_BYTE);
 		if (j != SHA1_MSG_SCHEDULE_MAX){
-			multiColumnPrinter_print(printer, chunk->file_name, "SHA1", "l", "~ <!>", chunk->offset + i, msg_str);
+			multiColumnPrinter_print(printer, chunk->file_name, "SHA1", "b", "~ <!>", chunk->offset + i, msg_str);
 		}
 		else{
-			multiColumnPrinter_print(printer, chunk->file_name, "SHA1", "l", "msg", chunk->offset + i, msg_str);
+			multiColumnPrinter_print(printer, chunk->file_name, "SHA1", "b", "msg", chunk->offset + i, msg_str);
 		}
 
 		next:;
@@ -153,10 +153,10 @@ void search_sha256_msg(struct fileChunk* chunk, struct multiColumnPrinter* print
 
 		sprintBuffer_raw_inv_endian(msg_str, (char*)msg_buffer, SHA256_MSG_NB_BYTE);
 		if (j != SHA256_MSG_SCHEDULE_MAX){
-			multiColumnPrinter_print(printer, chunk->file_name, "SHA256", "l", "~ <!>", chunk->offset + i, msg_str);
+			multiColumnPrinter_print(printer, chunk->file_name, "SHA256", "b", "~ <!>", chunk->offset + i, msg_str);
 		}
 		else{
-			multiColumnPrinter_print(printer, chunk->file_name, "SHA256", "l", "msg", chunk->offset + i, msg_str);
+			multiColumnPrinter_print(printer, chunk->file_name, "SHA256", "b", "msg", chunk->offset + i, msg_str);
 		}
 
 		next:;
@@ -220,10 +220,10 @@ void search_sha512_msg(struct fileChunk* chunk, struct multiColumnPrinter* print
 
 		sprintBuffer_raw_inv_endian(msg_str, (char*)msg_buffer, SHA512_MSG_NB_BYTE);
 		if (j != SHA512_MSG_SCHEDULE_MAX){
-			multiColumnPrinter_print(printer, chunk->file_name, "SHA512", "l", "~ <!>", chunk->offset + i, msg_str);
+			multiColumnPrinter_print(printer, chunk->file_name, "SHA512", "b", "~ <!>", chunk->offset + i, msg_str);
 		}
 		else{
-			multiColumnPrinter_print(printer, chunk->file_name, "SHA512", "l", "msg", chunk->offset + i, msg_str);
+			multiColumnPrinter_print(printer, chunk->file_name, "SHA512", "b", "msg", chunk->offset + i, msg_str);
 		}
 
 		next:;
