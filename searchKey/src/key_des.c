@@ -254,8 +254,6 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 	uint32_t 	k;
 	uint8_t* 	round_key;
 	uint8_t 	key[DES_KEY_NB_BYTE];
-	uint32_t 	mask_c;
-	uint32_t 	mask_d;
 	uint32_t 	found;
 	uint8_t 	tmp2[8];
 	uint32_t 	tmp1[2];
@@ -271,14 +269,75 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 		/* FORWARD FMT1 */
 		round_key = (uint8_t*)(chunk->buffer + i);
 
-		memset(tmp1, 0, DES_KEY_NB_BYTE);
+		/* 0 */
+		des_load_round_key_forward_fmt1(round_key, tmp2);
+		round_key += 8;
+	
+		memset(cd, 0, 8);
 
-		mask_c = 0x00000000;
-		mask_d = 0x00000000;
+		for (k = 0; k < 28; k++){
+			uint32_t index = p2[k];
+
+			if (index){
+				index --;
+				*((uint8_t*)cd + (0 + (k / 8))) |= ((tmp2[index / 6] >> (5 - (index % 6))) & 0x01) << (7 - (k % 8));
+			}
+		}
+
+		for (k = 0; k < 28; k++){
+			uint32_t index = p2[k + 28];
+
+			if (index){
+				index --;
+				*((uint8_t*)cd + (4 + (k / 8))) |= ((tmp2[index / 6] >> (5 - (index % 6))) & 0x01) << (7 - (k % 8));
+			}
+		}
+
+		memcpy(tmp1, cd, 8);
+
+		/* 1 */
+		des_load_round_key_forward_fmt1(round_key, tmp2);
+		round_key += 8;
+
+		memset(cd, 0, 8);
+
+		for (k = 0; k < 28; k++){
+			uint32_t index = p2[56 + k];
+
+			if (index){
+				index --;
+				*((uint8_t*)cd + (0 + (k / 8))) |= ((tmp2[index / 6] >> (5 - (index % 6))) & 0x01) << (7 - (k % 8));
+			}
+		}
+
+		for (k = 0; k < 28; k++){
+			uint32_t index = p2[56 + k + 28];
+
+			if (index){
+				index --;
+				*((uint8_t*)cd + (4 + (k / 8))) |= ((tmp2[index / 6] >> (5 - (index % 6))) & 0x01) << (7 - (k % 8));
+			}
+		}
 
 		found = 1;
+		if (((tmp1[0] & mask[2]) != (cd[0] & mask[0])) || ((tmp1[1] & mask[3]) != (cd[1] & mask[1]))){
+			found = 0;
+		}
 
-		for (j = 0; j < 16 && found; j++, round_key += 8){
+		tmp1[0] |= cd[0];
+		tmp1[1] |= cd[1];
+
+		if (found){
+			for (k = 0; k < DES_NB_BLACK_LISTED_KEY; k++){
+				if (!memcmp(tmp1, black_listed_key[k], DES_KEY_NB_BYTE)){
+					found = 0;
+					break;
+				}
+			}
+		}
+
+		/* - */
+		for (j = 2; j < 16 && found; j++, round_key += 8){
 			des_load_round_key_forward_fmt1(round_key, tmp2);
 
 			memset(cd, 0, 8);
@@ -293,7 +352,7 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 			}
 
 			for (k = 0; k < 28; k++){
-				uint32_t index = p2[56 *j+ k + 28];
+				uint32_t index = p2[56 * j + k + 28];
 
 				if (index){
 					index --;
@@ -301,24 +360,9 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 				}
 			}
 
-			if (((tmp1[0] & mask[2 * j]) != (cd[0] & mask_c)) || ((tmp1[1] & mask[2 * j + 1]) != (cd[1] & mask_d))){
+			if (((tmp1[0] & mask[2 * j]) != cd[0]) || ((tmp1[1] & mask[2 * j + 1]) != cd[1])){
 				found = 0;
 				break;
-			}
-
-			tmp1[0] |= cd[0];
-			tmp1[1] |= cd[1];
-
-			mask_c |=  mask[2 * j];
-			mask_d |=  mask[2 * j + 1];
-		}
-
-		if (found){
-			for (k = 0; k < DES_NB_BLACK_LISTED_KEY; k++){
-				if (!memcmp(tmp1, black_listed_key[k], DES_KEY_NB_BYTE)){
-					found = 0;
-					break;
-				}
 			}
 		}
 
@@ -337,14 +381,75 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 		/* FORWARD FMT2 */
 		round_key = (uint8_t*)(chunk->buffer + i);
 
-		memset(tmp1, 0, DES_KEY_NB_BYTE);
+		/* 0 */
+		des_load_round_key_forward_fmt2(round_key, tmp2);
+		round_key += 8;
 
-		mask_c = 0x00000000;
-		mask_d = 0x00000000;
+		memset(cd, 0, 8);
+
+		for (k = 0; k < 28; k++){
+			uint32_t index = p2[k];
+
+			if (index){
+				index --;
+				*((uint8_t*)cd + (0 + (k / 8))) |= ((tmp2[index / 6] >> (5 - (index % 6))) & 0x01) << (7 - (k % 8));
+			}
+		}
+
+		for (k = 0; k < 28; k++){
+			uint32_t index = p2[k + 28];
+
+			if (index){
+				index --;
+				*((uint8_t*)cd + (4 + (k / 8))) |= ((tmp2[index / 6] >> (5 - (index % 6))) & 0x01) << (7 - (k % 8));
+			}
+		}
+
+		memcpy(tmp1, cd, 8);
+
+		/* 1 */
+		des_load_round_key_forward_fmt2(round_key, tmp2);
+		round_key += 8;
+
+		memset(cd, 0, 8);
+
+		for (k = 0; k < 28; k++){
+			uint32_t index = p2[56 + k];
+
+			if (index){
+				index --;
+				*((uint8_t*)cd + (0 + (k / 8))) |= ((tmp2[index / 6] >> (5 - (index % 6))) & 0x01) << (7 - (k % 8));
+			}
+		}
+
+		for (k = 0; k < 28; k++){
+			uint32_t index = p2[56 + k + 28];
+
+			if (index){
+				index --;
+				*((uint8_t*)cd + (4 + (k / 8))) |= ((tmp2[index / 6] >> (5 - (index % 6))) & 0x01) << (7 - (k % 8));
+			}
+		}
 
 		found = 1;
+		if (((tmp1[0] & mask[2]) != (cd[0] & mask[0])) || ((tmp1[1] & mask[3]) != (cd[1] & mask[1]))){
+			found = 0;
+		}
 
-		for (j = 0; j < 16 && found; j++, round_key += 8){
+		tmp1[0] |= cd[0];
+		tmp1[1] |= cd[1];
+
+		if (found){
+			for (k = 0; k < DES_NB_BLACK_LISTED_KEY; k++){
+				if (!memcmp(tmp1, black_listed_key[k], DES_KEY_NB_BYTE)){
+					found = 0;
+					break;
+				}
+			}
+		}
+
+		/* - */
+		for (j = 2; j < 16 && found; j++, round_key += 8){
 			des_load_round_key_forward_fmt2(round_key, tmp2);
 
 			memset(cd, 0, 8);
@@ -359,32 +464,17 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 			}
 
 			for (k = 0; k < 28; k++){
-				uint32_t index = p2[56 *j+ k + 28];
+				uint32_t index = p2[56 * j + k + 28];
 
 				if (index){
 					index --;
 					*((uint8_t*)cd + (4 + (k / 8))) |= ((tmp2[index / 6] >> (5 - (index % 6))) & 0x01) << (7 - (k % 8));
 				}
 			}
-
-			if (((tmp1[0] & mask[2 * j]) != (cd[0] & mask_c)) || ((tmp1[1] & mask[2 * j + 1]) != (cd[1] & mask_d))){
+				
+			if (((tmp1[0] & mask[2 * j]) != cd[0]) || ((tmp1[1] & mask[2 * j + 1]) != cd[1])){
 				found = 0;
 				break;
-			}
-
-			tmp1[0] |= cd[0];
-			tmp1[1] |= cd[1];
-
-			mask_c |=  mask[2 * j];
-			mask_d |=  mask[2 * j + 1];
-		}
-
-		if (found){
-			for (k = 0; k < DES_NB_BLACK_LISTED_KEY; k++){
-				if (!memcmp(tmp1, black_listed_key[k], DES_KEY_NB_BYTE)){
-					found = 0;
-					break;
-				}
 			}
 		}
 
@@ -403,14 +493,75 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 		/* BACKWARD FMT1 */
 		round_key = (uint8_t*)(chunk->buffer + i + 8 * 15);
 
-		memset(tmp1, 0, DES_KEY_NB_BYTE);
+		/* 0 */
+		des_load_round_key_backward_fmt1(round_key, tmp2);
+		round_key -= 8;
 
-		mask_c = 0x00000000;
-		mask_d = 0x00000000;
+		memset(cd, 0, 8);
+
+		for (k = 0; k < 28; k++){
+			uint32_t index = p2[k];
+
+			if (index){
+				index --;
+				*((uint8_t*)cd + (0 + (k / 8))) |= ((tmp2[index / 6] >> (5 - (index % 6))) & 0x01) << (7 - (k % 8));
+			}
+		}
+
+		for (k = 0; k < 28; k++){
+			uint32_t index = p2[k + 28];
+
+			if (index){
+				index --;
+				*((uint8_t*)cd + (4 + (k / 8))) |= ((tmp2[index / 6] >> (5 - (index % 6))) & 0x01) << (7 - (k % 8));
+			}
+		}
+
+		memcpy(tmp1, cd, 8);
+
+		/* 1 */
+		des_load_round_key_backward_fmt1(round_key, tmp2);
+		round_key -= 8;
+
+		memset(cd, 0, 8);
+
+		for (k = 0; k < 28; k++){
+			uint32_t index = p2[56 + k];
+
+			if (index){
+				index --;
+				*((uint8_t*)cd + (0 + (k / 8))) |= ((tmp2[index / 6] >> (5 - (index % 6))) & 0x01) << (7 - (k % 8));
+			}
+		}
+
+		for (k = 0; k < 28; k++){
+			uint32_t index = p2[56 + k + 28];
+
+			if (index){
+				index --;
+				*((uint8_t*)cd + (4 + (k / 8))) |= ((tmp2[index / 6] >> (5 - (index % 6))) & 0x01) << (7 - (k % 8));
+			}
+		}
 
 		found = 1;
+		if (((tmp1[0] & mask[2]) != (cd[0] & mask[0])) || ((tmp1[1] & mask[3]) != (cd[1] & mask[1]))){
+			found = 0;
+		}
 
-		for (j = 0; j < 16 && found ; j++, round_key -= 8){
+		tmp1[0] |= cd[0];
+		tmp1[1] |= cd[1];
+
+		if (found){
+			for (k = 0; k < DES_NB_BLACK_LISTED_KEY; k++){
+				if (!memcmp(tmp1, black_listed_key[k], DES_KEY_NB_BYTE)){
+					found = 0;
+					break;
+				}
+			}
+		}
+
+		/* - */
+		for (j = 2; j < 16 && found ; j++, round_key -= 8){
 			des_load_round_key_backward_fmt1(round_key, tmp2);
 
 			memset(cd, 0, 8);
@@ -433,24 +584,9 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 				}
 			}
 
-			if (((tmp1[0] & mask[2 * j]) != (cd[0] & mask_c)) || ((tmp1[1] & mask[2 * j + 1]) != (cd[1] & mask_d))){
+			if (((tmp1[0] & mask[2 * j]) != cd[0]) || ((tmp1[1] & mask[2 * j + 1]) != cd[1])){
 				found = 0;
 				break;
-			}
-
-			tmp1[0] |= cd[0];
-			tmp1[1] |= cd[1];
-
-			mask_c |=  mask[2 * j];
-			mask_d |=  mask[2 * j + 1];
-		}
-
-		if (found){
-			for (k = 0; k < DES_NB_BLACK_LISTED_KEY; k++){
-				if (!memcmp(tmp1, black_listed_key[k], DES_KEY_NB_BYTE)){
-					found = 0;
-					break;
-				}
 			}
 		}
 
