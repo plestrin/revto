@@ -191,7 +191,7 @@ static const struct berField ber_frt_rsa_pub_key[BER_FRT_RSA_PUB_KEY_NB_FIELD] =
 };
 
 static int32_t ber_rsa_pub_key_parse(struct fileChunk* chunk, uint64_t* field_start, uint8_t* field_type, uint64_t* field_length, struct multiColumnPrinter* printer){
-	if (field_type[0] == 0x02 && field_type[1] == 0x02 && field_length[0] >= field_length[1]){
+	if (field_type[0] == 0x02 && field_type[1] == 0x02 && field_length[0] >= field_length[1] && field_length[1] > 0){
 		ber_print(chunk, field_start, field_length, ber_frt_rsa_pub_key, BER_FRT_RSA_PUB_KEY_NB_FIELD, "BER RSA", printer);
 		return 0;
 	}
