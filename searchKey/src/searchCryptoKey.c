@@ -10,6 +10,7 @@
 #include "key_des.h"
 #include "key_twofish.h"
 #include "msg_sha.h"
+#include "key_ber.h"
 
 void(*key_handler_buffer[])(struct fileChunk*,struct multiColumnPrinter*) = {
 	search_AES128_enc_key_big_endian,
@@ -25,15 +26,16 @@ void(*key_handler_buffer[])(struct fileChunk*,struct multiColumnPrinter*) = {
 	search_AES256_enc_key_little_endian,
 	search_AES256_dec_key_little_endian,
 	search_serpent_key,
-	search_des_key,
-	/*search_twofish_key,*/ /* it is still very slow thus I disable it by default */
+	/*search_des_key, 	*/						/* SLOW - comment if it takes too long */
+	/*search_twofish_key,*/ 					/* SLOW - comment if it takes too long */
 	search_sha1_msg,
 	search_sha256_msg,
 	search_sha512_msg,
+	search_ber_key,
 	NULL
 };
 
-int main(int32_t argc, char** argv){
+int32_t main(int32_t argc, char** argv){
 	struct fileChunk 			chunk;
 	int32_t 					i;
 	uint32_t 					j;
@@ -41,28 +43,32 @@ int main(int32_t argc, char** argv){
 
 	if (argc < 2){
 		log_err("Please specify a binary file");
-		return 0;
+		return EXIT_FAILURE;
 	}
 
 	if (init_aes_key){
 		log_err("unable to init AES key");
-		return 0;
+		return EXIT_FAILURE;
 	}
 	if (init_serpent_key){
 		log_err("unable to init Serpent key");
-		return 0;
+		return EXIT_FAILURE;
 	}
 	if (init_des_key){
 		log_err("unable to init DES key");
-		return 0;
+		return EXIT_FAILURE;
 	}
 	if (init_twofish_key){
 		log_err("unable to init Twofish key");
-		return 0;
+		return EXIT_FAILURE;
 	}
 	if (init_sha_msg){
-		log_err("unable to init Twofish key");
-		return 0;
+		log_err("unable to init SHA msg");
+		return EXIT_FAILURE;
+	}
+	if (init_ber_key){
+		log_err("unable to init BER key");
+		return EXIT_FAILURE;
 	}
 
 	printer = multiColumnPrinter_create(stdout, 6, NULL, NULL, NULL);
@@ -106,6 +112,7 @@ int main(int32_t argc, char** argv){
 	clean_des_key;
 	clean_twofish_key;
 	clean_sha_msg;
+	clean_ber_key;
 
-	return 0;
+	return EXIT_SUCCESS;
 }

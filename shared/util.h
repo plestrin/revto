@@ -19,8 +19,12 @@
 
 void* mapFile_map(const char* file_name, uint64_t* size);
 
+#ifndef FILECHUNCK_MAX_LENGTH
 #define FILECHUNCK_MAX_LENGTH 	4096000
+#endif
+#ifndef FILECHUNCK_OVERLAP
 #define FILECHUNCK_OVERLAP 		4096
+#endif
 
 struct fileChunk{
 	char* 		file_name;
@@ -45,5 +49,12 @@ void sprintBuffer_raw(char* str, char* buffer, uint64_t buffer_length);
 
 void fprintBuffer_raw_inv_endian(FILE* file, char* buffer, uint64_t buffer_length);
 void sprintBuffer_raw_inv_endian(char* str, char* buffer, uint64_t buffer_length);
+
+#ifndef min
+#define min(a, b) (((a) > (b)) ? (b) : (a))
+#endif
+#ifndef max
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+#endif
 
 #endif
