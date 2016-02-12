@@ -84,14 +84,14 @@ int main(int32_t argc, char** argv){
 		multiColumnPrinter_set_title(printer, 2, "SCORE");
 		multiColumnPrinter_set_title(printer, 3, "MIN OFF");
 		multiColumnPrinter_set_title(printer, 4, "MAX OFF");
-		
-		multiColumnPrinter_print_header(printer);
-
 
 		for (i = 1; i < argc; i++){
 			buffer = (uint8_t*)mapFile_map(argv[i], &length);
-			if (buffer == NULL || buffer == MAP_FAILED){
+			if (buffer == NULL){
 				log_err_m("MapFile failed for: \"%s\"", argv[i]);
+				continue;
+			}
+			else if (length == 0){
 				continue;
 			}
 

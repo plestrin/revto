@@ -11,11 +11,11 @@
 void* mapFile_map(const char* file_name, uint64_t* size){
 	int 				file;
 	struct stat 		sb;
-	void*				buffer;
+	void*				buffer = MAP_FAILED;
 
 	file = open(file_name, O_RDONLY);
 	if (file == -1){
-		log_err_m("Unable to open file %s read only", file_name);
+		log_err_m("Unable to open file %s read only: %s", file_name, strerror(errno));
 		return NULL;
 	}
 
@@ -26,11 +26,14 @@ void* mapFile_map(const char* file_name, uint64_t* size){
 	}
 
 	*size = sb.st_size;
-	buffer = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, file, 0);
-	close(file);
-	if (buffer == MAP_FAILED){
-		log_err("Unable to map file");
+	if (sb.st_size > 0){
+		buffer = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, file, 0);
+		if (buffer == MAP_FAILED){
+			log_err_m("Unable to map file: %s", strerror(errno));
+			buffer = NULL;
+		}
 	}
+	close(file);
 
 	return buffer;
 }
@@ -42,7 +45,7 @@ int32_t fileChunk_get_next(struct fileChunk* chunk){
 	if (chunk->file == -1){
 		chunk->file = open(chunk->file_name, O_RDONLY);
 		if (chunk->file == -1){
-			log_err_m("Unable to open file %s read only", chunk->file_name);
+			log_err_m("Unable to open file %s read only: %s", chunk->file_name, strerror(errno));
 			return -1;
 		}
 
@@ -78,7 +81,7 @@ int32_t fileChunk_get_next(struct fileChunk* chunk){
 	chunk->buffer = mmap(NULL,  map_length, PROT_READ, MAP_PRIVATE, chunk->file, chunk->offset);
 	if (chunk->buffer == MAP_FAILED){
 		close(chunk->file);
-		log_err("Unable to map file");
+		log_err_m("Unable to map file: %s", strerror(errno));
 		return -1;
 	}
 
