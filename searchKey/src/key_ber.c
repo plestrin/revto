@@ -173,9 +173,8 @@ static int32_t ber_rsa_pri_key_parse(struct fileChunk* chunk, uint64_t* field_st
 		ber_print(chunk, field_start, field_length, ber_frt_rsa_pri_key, BER_FRT_RSA_PRI_KEY_NB_FIELD, "BER RSA", printer);
 		return 0;
 	}
-	else{
-		return -1;
-	}
+
+	return -1;
 }
 
 #define BER_FRT_RSA_PUB_KEY_NB_FIELD 2
@@ -195,9 +194,8 @@ static int32_t ber_rsa_pub_key_parse(struct fileChunk* chunk, uint64_t* field_st
 		ber_print(chunk, field_start, field_length, ber_frt_rsa_pub_key, BER_FRT_RSA_PUB_KEY_NB_FIELD, "BER RSA", printer);
 		return 0;
 	}
-	else{
-		return -1;
-	}
+
+	return -1;
 }
 
 #define BER_FRT_DSA_PRI_KEY_NB_FIELD 6
@@ -208,15 +206,7 @@ static const struct berField ber_frt_dsa_pri_key[BER_FRT_DSA_PRI_KEY_NB_FIELD] =
 	},
 	{
 		.must_print = 1,
-		.desc = "priv"
-	},
-	{
-		.must_print = 1,
-		.desc = "pub"
-	},
-	{
-		.must_print = 1,
-		.desc = "mod"
+		.desc = "P"
 	},
 	{
 		.must_print = 1,
@@ -225,17 +215,53 @@ static const struct berField ber_frt_dsa_pri_key[BER_FRT_DSA_PRI_KEY_NB_FIELD] =
 	{
 		.must_print = 1,
 		.desc = "G"
+	},
+	{
+		.must_print = 1,
+		.desc = "pub"
+	},
+	{
+		.must_print = 1,
+		.desc = "priv"
 	}
 };
 
 static int32_t ber_dsa_pri_key_parse(struct fileChunk* chunk, uint64_t* field_start, uint8_t* field_type, uint64_t* field_length, struct multiColumnPrinter* printer){
 	if (field_type[0] == 0x02 && field_length[0] == 1){
-		ber_print(chunk, field_start, field_length, ber_frt_dsa_pri_key, BER_FRT_DSA_PRI_KEY_NB_FIELD, "BER DSA", printer);
-		return 0;
+		if (field_length[1] >= field_length[2]){ /* Q | (P - 1) */
+			ber_print(chunk, field_start, field_length, ber_frt_dsa_pri_key, BER_FRT_DSA_PRI_KEY_NB_FIELD, "BER DSA", printer);
+			return 0;
+		}
 	}
-	else{
-		return -1;
+
+	return -1;
+}
+
+#define BER_FRT_DSA_PUB_KEY_NB_FIELD 3
+static const struct berField ber_frt_dsa_pub_key[BER_FRT_DSA_PUB_KEY_NB_FIELD] = {
+	{
+		.must_print = 1,
+		.desc = "P"
+	},
+	{
+		.must_print = 1,
+		.desc = "Q"
+	},
+	{
+		.must_print = 1,
+		.desc = "G"
+	},
+};
+
+static int32_t ber_dsa_pub_key_parse(struct fileChunk* chunk, uint64_t* field_start, uint8_t* field_type, uint64_t* field_length, struct multiColumnPrinter* printer){
+	if (field_type[0] == 0x02 && field_type[2] == 0x02){
+		if (field_length[0] >= field_length[1]){ /* Q | (P - 1) */
+			ber_print(chunk, field_start, field_length, ber_frt_dsa_pub_key, BER_FRT_DSA_PUB_KEY_NB_FIELD, "BER DSA", printer);
+			return 0;
+		}
 	}
+
+	return -1;
 }
 
 #define BER_FRT_MAX_FIELD 9 /* must be updated, if one adds a new format */
@@ -388,6 +414,11 @@ static uint32_t ber_parse(struct fileChunk* chunk, uint64_t start, uint64_t leng
 	}
 	if (nb_field == BER_FRT_DSA_PRI_KEY_NB_FIELD){
 		if (!ber_dsa_pri_key_parse(chunk, field_start, field_type, field_length, printer)){
+			return 0;
+		}
+	}
+	if (nb_field == BER_FRT_DSA_PUB_KEY_NB_FIELD){
+		if (!ber_dsa_pub_key_parse(chunk, field_start, field_type, field_length, printer)){
 			return 0;
 		}
 	}
