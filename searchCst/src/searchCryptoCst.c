@@ -91,7 +91,7 @@ int main(int32_t argc, char** argv){
 				log_err_m("MapFile failed for: \"%s\"", argv[i]);
 				continue;
 			}
-			else if (length == 0){
+			else if (!length){
 				continue;
 			}
 

@@ -91,13 +91,13 @@ int32_t main(int32_t argc, char** argv){
 		multiColumnPrinter_set_title(printer, 3, "DEC-ENC");
 		multiColumnPrinter_set_title(printer, 4, "OFFSET");
 		multiColumnPrinter_set_title(printer, 5, "KEY/MSG");
-		
+
 		multiColumnPrinter_print_header(printer);
 
 
 		for (i = 1; i < argc; i++){
 			fileChunk_init(chunk, argv[i]);
-			while(fileChunk_get_next(&chunk) == 0){
+			while (!fileChunk_get_next(&chunk)){
 				for (j = 0; key_handler_buffer[j] != NULL; j++){
 					key_handler_buffer[j](&chunk, printer);
 				}

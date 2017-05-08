@@ -66,12 +66,12 @@ void search_sha1_msg(struct fileChunk* chunk, struct multiColumnPrinter* printer
 		msg_buffer = (uint32_t*)(chunk->buffer + i);
 
 		for (j = 0; j < SHA1_NB_BLACK_LISTED_MSG; j++){
-			if (memcmp(msg_buffer, black_listed_msg_sha1[j], SHA1_MSG_NB_BYTE) == 0){
+			if (!memcmp(msg_buffer, black_listed_msg_sha1[j], SHA1_MSG_NB_BYTE)){
 				goto next;
 			}
 		}
 
-		for(j = 16; j < SHA1_MSG_SCHEDULE_MAX; j++){
+		for (j = 16; j < SHA1_MSG_SCHEDULE_MAX; j++){
 			if (msg_buffer[j] != ROL_32(msg_buffer[j - 3] ^ msg_buffer[j - 8] ^ msg_buffer[j - 14] ^ msg_buffer[j - 16], 1)){
 				if (j < SHA1_MSG_SCHEDULE_MIN + last_found[i % 4]){
 					goto next;
@@ -133,12 +133,12 @@ void search_sha256_msg(struct fileChunk* chunk, struct multiColumnPrinter* print
 		msg_buffer = (uint32_t*)(chunk->buffer + i);
 
 		for (j = 0; j < SHA256_NB_BLACK_LISTED_MSG; j++){
-			if (memcmp(msg_buffer, black_listed_msg_sha256[j], SHA256_MSG_NB_BYTE) == 0){
+			if (!memcmp(msg_buffer, black_listed_msg_sha256[j], SHA256_MSG_NB_BYTE)){
 				goto next;
 			}
 		}
 
-		for(j = 16; j < SHA256_MSG_SCHEDULE_MAX; j++){
+		for (j = 16; j < SHA256_MSG_SCHEDULE_MAX; j++){
 			if (msg_buffer[j] !=  Gamma1_32(msg_buffer[j - 2]) + msg_buffer[j - 7] + Gamma0_32(msg_buffer[j - 15]) + msg_buffer[j - 16]){
 				if (j < SHA256_MSG_SCHEDULE_MIN + last_found[i % 4]){
 					goto next;
@@ -148,7 +148,7 @@ void search_sha256_msg(struct fileChunk* chunk, struct multiColumnPrinter* print
 				}
 			}
 		}
-		
+
 		last_found[i % 4] = (j + 1) - SHA256_MSG_SCHEDULE_MIN;
 
 		sprintBuffer_raw_inv_endian(msg_str, (char*)msg_buffer, SHA256_MSG_NB_BYTE);
@@ -168,8 +168,8 @@ void search_sha256_msg(struct fileChunk* chunk, struct multiColumnPrinter* print
 	return;
 }
 
-#define Gamma0_64(x) 	(ROR_64(x, 1 ) ^ ROR_64(x, 8 ) ^ ((x) >> 7))
-#define Gamma1_64(x) 	(ROR_64(x, 19) ^ ROR_64(x, 61) ^ ((x) >> 6))
+#define Gamma0_64(x) (ROR_64(x, 1 ) ^ ROR_64(x, 8 ) ^ ((x) >> 7))
+#define Gamma1_64(x) (ROR_64(x, 19) ^ ROR_64(x, 61) ^ ((x) >> 6))
 
 #define SHA512_NB_BLACK_LISTED_MSG 1
 
@@ -200,12 +200,12 @@ void search_sha512_msg(struct fileChunk* chunk, struct multiColumnPrinter* print
 		msg_buffer = (uint64_t*)(chunk->buffer + i);
 
 		for (j = 0; j < SHA512_NB_BLACK_LISTED_MSG; j++){
-			if (memcmp(msg_buffer, black_listed_msg_sha512[j], SHA512_MSG_NB_BYTE) == 0){
+			if (!memcmp(msg_buffer, black_listed_msg_sha512[j], SHA512_MSG_NB_BYTE)){
 				goto next;
 			}
 		}
 
-		for(j = 16; j < SHA512_MSG_SCHEDULE_MAX; j++){
+		for (j = 16; j < SHA512_MSG_SCHEDULE_MAX; j++){
 			if (msg_buffer[j] !=  Gamma1_64(msg_buffer[j - 2]) + msg_buffer[j - 7] + Gamma0_64(msg_buffer[j - 15]) + msg_buffer[j - 16]){
 				if (j < SHA512_MSG_SCHEDULE_MIN + last_found[i % 8]){
 					goto next;
@@ -215,7 +215,7 @@ void search_sha512_msg(struct fileChunk* chunk, struct multiColumnPrinter* print
 				}
 			}
 		}
-		
+
 		last_found[i % 8] = (j + 1) - SHA512_MSG_SCHEDULE_MIN;
 
 		sprintBuffer_raw_inv_endian(msg_str, (char*)msg_buffer, SHA512_MSG_NB_BYTE);

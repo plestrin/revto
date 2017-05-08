@@ -12,7 +12,7 @@ struct multiColumnPrinter* multiColumnPrinter_create(FILE* file, uint32_t nb_col
 	struct multiColumnPrinter* 	printer;
 	uint32_t 					i;
 
-	if (nb_column == 0){
+	if (!nb_column){
 		log_warn("at least one column must be created");
 		nb_column = 1;
 	}
@@ -65,7 +65,6 @@ struct multiColumnPrinter* multiColumnPrinter_create(FILE* file, uint32_t nb_col
 		memset(printer->columns[i].title, '\0', MULTICOLUMN_STRING_MAX_SIZE);
 		snprintf(printer->columns[i].title, MULTICOLUMN_STRING_MAX_SIZE, "TITLE %u", i);
 	}
-	
 
 	return printer;
 }
@@ -166,7 +165,7 @@ void multiColumnPrinter_print(struct multiColumnPrinter* printer, ...){
 	va_start(vl, printer);
 
 	for (i = 0; i < printer->nb_column; i++){
-		switch(printer->columns[i].type){
+		switch (printer->columns[i].type){
 			case MULTICOLUMN_TYPE_STRING 	: {
 				value_str = (char*)va_arg(vl, char*);
 				break;

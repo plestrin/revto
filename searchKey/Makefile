@@ -17,7 +17,7 @@ build/%.o: src/%.c
 
 build/%.o: ../shared/%.c
 	$(CC) -o $@ -c $< $(CFLAGS)
-		
+
 clean:
 	@ rm -rf build
 	@ rm -f $(EXE)

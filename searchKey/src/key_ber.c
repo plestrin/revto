@@ -273,7 +273,7 @@ enum berLength{
 };
 
 static enum berLength ber_get_length_type(const uint8_t* buffer, uint64_t length){
-	if (length == 0){
+	if (!length){
 		return BER_LENGTH_INVALID;
 	}
 	else if (buffer[0] == 0x80){
@@ -294,7 +294,7 @@ static uint64_t ber_get_indefinite_length(const uint8_t* buffer, uint64_t length
 	uint64_t i;
 
 	for (i = 1; i + 1 < length; i++){
-		if (((buffer[i] | buffer[i + 1]) & 0x3f) == 0){
+		if (!((buffer[i] | buffer[i + 1]) & 0x3f)){
 			return i - 1;
 		}
 	}
@@ -307,7 +307,7 @@ static uint64_t ber_get_definite_length(const uint8_t* buffer, uint64_t* offset)
 	uint64_t result;
 
 	if (buffer[0] & 0x80){
-		*offset = (uint32_t)(buffer[0] & 0x7f) + 1; 
+		*offset = (uint32_t)(buffer[0] & 0x7f) + 1;
 
 		for (i = 1, result = 0; i < *offset; i++){
 			result = result << 8;
@@ -337,7 +337,7 @@ static uint32_t ber_parse(struct fileChunk* chunk, uint64_t start, uint64_t leng
 			return -1;
 		}
 
-		if (ber_valid_identifier[chunk->buffer[start + i] & 0x3f] == 0){
+		if (!ber_valid_identifier[chunk->buffer[start + i] & 0x3f]){
 			log_debug("\tBER: invalid identifier -> exit");
 			return -1;
 		}
@@ -345,9 +345,9 @@ static uint32_t ber_parse(struct fileChunk* chunk, uint64_t start, uint64_t leng
 		field_type[nb_field] = chunk->buffer[start + i] & 0x1f;
 		i ++;
 
-		switch(ber_get_length_type((uint8_t*)(chunk->buffer + start + i), length - i)){
+		switch (ber_get_length_type((uint8_t*)(chunk->buffer + start + i), length - i)){
 			case BER_LENGTH_INVALID 	: {
-				log_debug_m("\tBER: invalid lenght @ %llu -> exit", chunk->offset + start + i);
+				log_debug_m("\tBER: invalid length @ %llu -> exit", chunk->offset + start + i);
 				return -1;
 			}
 			case BER_LENGTH_INDEFINITE 	: {
@@ -357,12 +357,12 @@ static uint32_t ber_parse(struct fileChunk* chunk, uint64_t start, uint64_t leng
 					l = ber_get_indefinite_length((uint8_t*)(chunk->buffer + start + i), length - i);
 
 					if (l == length - i){
-						log_debug_m("\tBER: invalid indefinite lenght @ %llu -> exit", chunk->offset + start + i);
+						log_debug_m("\tBER: invalid indefinite length @ %llu -> exit", chunk->offset + start + i);
 						return -1;
 					}
 
-					log_debug_m("\tBER: lenght: %llu @ %llu ", l, chunk->offset + start + i);
-					
+					log_debug_m("\tBER: length: %llu @ %llu ", l, chunk->offset + start + i);
+
 					i += 1;
 					field_start[nb_field] = start + i;
 					field_length[nb_field] = l;
@@ -382,8 +382,8 @@ static uint32_t ber_parse(struct fileChunk* chunk, uint64_t start, uint64_t leng
 
 				l = ber_get_definite_length((uint8_t*)(chunk->buffer + start + i), &offset);
 
-				log_debug_m("\tBER: lenght: %llu @ %llu ", l, chunk->offset + start + i);
-				
+				log_debug_m("\tBER: length: %llu @ %llu ", l, chunk->offset + start + i);
+
 				i += offset;
 				field_start[nb_field] = start + i;
 				field_length[nb_field] = l;
@@ -401,7 +401,7 @@ static uint32_t ber_parse(struct fileChunk* chunk, uint64_t start, uint64_t leng
 	}
 
 	log_debug_m("\tBER: %u field(s)", nb_field);
-	
+
 	if (nb_field == BER_FRT_RSA_PRI_KEY_NB_FIELD){
 		if (!ber_rsa_pri_key_parse(chunk, field_start, field_type, field_length, printer)){
 			return 0;
@@ -435,7 +435,7 @@ void search_ber_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 
 	for (i = 0; i < chunk->length - BER_MIN_LENGTH + 1; i++){
 		if (chunk->buffer[i] == 0x30){
-			switch(ber_get_length_type((uint8_t*)(chunk->buffer + i + 1), chunk->length - i - 1)){
+			switch (ber_get_length_type((uint8_t*)(chunk->buffer + i + 1), chunk->length - i - 1)){
 				case BER_LENGTH_INVALID 	: {break;}
 				case BER_LENGTH_INDEFINITE 	: {
 					uint64_t length;

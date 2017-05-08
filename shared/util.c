@@ -73,7 +73,7 @@ int32_t fileChunk_get_next(struct fileChunk* chunk){
 		chunk->file = -1;
 		return 1;
 	}
-	else if(chunk->offset > 0){
+	else if (chunk->offset > 0){
 		chunk->offset = (chunk->offset > FILECHUNCK_OVERLAP) ? (chunk->offset - FILECHUNCK_OVERLAP) : 0;
 	}
 

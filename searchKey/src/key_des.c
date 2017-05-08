@@ -223,7 +223,7 @@ static inline void des_load_round_key_forward_fmt2(uint8_t* round_key, uint8_t* 
 
 	tmp1 = __builtin_bswap32(*(uint32_t*)(round_key));
 	tmp1 = ((tmp1 >> 7) & 0x01010101) | ((tmp1 >> 5) & 0x02020202) | ((tmp1 >> 3) & 0x04040404) | ((tmp1 >> 1) & 0x08080808) | ((tmp1 << 1) & 0x10101010) | ((tmp1 << 3) & 0x20202020);
-	
+
 	tmp2 = __builtin_bswap32(ROTATE_R(*(uint32_t*)(round_key + 4), 4));
 	tmp2 = ((tmp2 >> 7) & 0x01010101) | ((tmp2 >> 5) & 0x02020202) | ((tmp2 >> 3) & 0x04040404) | ((tmp2 >> 1) & 0x08080808) | ((tmp2 << 1) & 0x10101010) | ((tmp2 << 3) & 0x20202020);
 
@@ -259,7 +259,7 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 	uint32_t 	tmp1[2];
 	uint32_t 	cd[2];
 	char 		key_str[2*DES_KEY_NB_BYTE + 1];
-	
+
 	if (chunk->length < DES_ROUND_KEY_NB_BYTE){
 		return;
 	}
@@ -272,7 +272,7 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 		/* 0 */
 		des_load_round_key_forward_fmt1(round_key, tmp2);
 		round_key += 8;
-	
+
 		memset(cd, 0, 8);
 
 		for (k = 0; k < 28; k++){
@@ -471,7 +471,7 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 					*((uint8_t*)cd + (4 + (k / 8))) |= ((tmp2[index / 6] >> (5 - (index % 6))) & 0x01) << (7 - (k % 8));
 				}
 			}
-				
+
 			if (((tmp1[0] & mask[2 * j]) != cd[0]) || ((tmp1[1] & mask[2 * j + 1]) != cd[1])){
 				found = 0;
 				break;
