@@ -102,7 +102,7 @@ static void ber_print(struct fileChunk* chunk, uint64_t* field_start, uint64_t* 
 
 		if (str_val == NULL){
 			str_val_length = field_length[i] * 2 + 1;
-			str_val = (char*)malloc(str_val_length);
+			str_val = malloc(str_val_length);
 			if (str_val == NULL){
 				log_err("unable to allocate memory");
 				return;

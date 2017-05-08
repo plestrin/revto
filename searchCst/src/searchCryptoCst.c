@@ -180,11 +180,11 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 
 	next1:
 
-	engine->cst_buffer 				= (struct cst*)malloc(sizeof(struct cst) * nb_cst);
-	engine->score_header_buffer 	= (struct cstScore*)malloc(sizeof(struct cstScore) * nb_descriptor);
-	engine->score_buffer 			= (uint8_t*)malloc(score_size);
-	engine->score_size 				= score_size;
-	engine->value_buffer 			= (char*)malloc(value_size);
+	engine->cst_buffer 			= malloc(sizeof(struct cst) * nb_cst);
+	engine->score_header_buffer = malloc(sizeof(struct cstScore) * nb_descriptor);
+	engine->score_buffer 		= malloc(score_size);
+	engine->score_size 			= score_size;
+	engine->value_buffer 		= malloc(value_size);
 
 	if (engine->cst_buffer == NULL || engine->score_header_buffer == NULL || engine->score_buffer == NULL || engine->value_buffer == NULL){
 		log_err("Unable to allocate memory");
@@ -363,7 +363,7 @@ static void searchCryptoCst_report_success(char* file_name, struct multiColumnPr
 					}
 
 					if (local_success >= cst_descriptor[i].score_threshold){
-						snprintf(score_percent, 32, "%u%%", (100 * local_success) / cst_descriptor[i].nb_element);
+						snprintf(score_percent, sizeof score_percent, "%u%%", (100 * local_success) / cst_descriptor[i].nb_element);
 						if (global_success){
 							multiColumnPrinter_print(printer, "", cst_descriptor[i].name, score_percent, cst_descriptor[i].score_header->min_offset,  cst_descriptor[i].score_header->max_offset, NULL);
 						}

@@ -17,7 +17,7 @@ struct multiColumnPrinter* multiColumnPrinter_create(FILE* file, uint32_t nb_col
 		nb_column = 1;
 	}
 
-	if ((printer = (struct multiColumnPrinter*)malloc(sizeof(struct multiColumnPrinter) + (nb_column - 1) * sizeof(struct multiColumnColumn))) == NULL){
+	if ((printer = malloc(sizeof(struct multiColumnPrinter) + (nb_column - 1) * sizeof(struct multiColumnColumn))) == NULL){
 		log_err("unable to allocate memory");
 		return NULL;
 	}

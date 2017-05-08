@@ -380,7 +380,7 @@ static int32_t attack128(uint8_t* buffer, uint8_t* key, uint32_t offset){
 	return 0;
 }
 
-int32_t init_twofish192(){
+int32_t init_twofish192(void){
 	uint32_t 	i;
 	uint32_t 	j;
 	uint32_t 	k;
@@ -389,8 +389,7 @@ int32_t init_twofish192(){
 	uint8_t 	p2;
 	uint32_t 	counter;
 
-	twofish192_meet_table = (struct twofish192MeetTable*)malloc(sizeof(struct twofish192MeetTable));
-	if (twofish192_meet_table == NULL){
+	if ((twofish192_meet_table = malloc(sizeof *twofish192_meet_table)) == NULL){
 		log_err("unable to allocate memory");
 		return -1;
 	}
@@ -417,7 +416,7 @@ int32_t init_twofish192(){
 	return 0;
 }
 
-void clean_twofish192(){
+void clean_twofish192(void){
 	free(twofish192_meet_table);
 }
 
@@ -473,7 +472,7 @@ static int32_t attack192(uint8_t* buffer, uint8_t* key, uint32_t offset){
 	return 0;
 }
 
-int32_t init_twofish256(){
+int32_t init_twofish256(void){
 	uint32_t 	i;
 	uint32_t 	j;
 	uint32_t 	k;
@@ -483,8 +482,7 @@ int32_t init_twofish256(){
 	uint8_t 	p2;
 	uint32_t 	counter;
 
-	twofish256_meet_table = (struct twofish256MeetTable*)malloc(sizeof(struct twofish256MeetTable));
-	if (twofish256_meet_table == NULL){
+	if ((twofish256_meet_table = malloc(sizeof *twofish256_meet_table)) == NULL){
 		log_err("unable to allocate memory");
 		return -1;
 	}
@@ -520,7 +518,7 @@ int32_t init_twofish256(){
 	return 0;
 }
 
-void clean_twofish256(){
+void clean_twofish256(void){
 	free(twofish256_meet_table);
 }
 
