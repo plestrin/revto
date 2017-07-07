@@ -5,14 +5,27 @@
 #include "util.h"
 #include "multiColumn.h"
 
+#ifdef ENABLE_AES
 #include "key_aes.h"
+#endif
+#ifdef ENABLE_SERPENT
 #include "key_serpent.h"
+#endif
+#ifdef ENABLE_DES
 #include "key_des.h"
+#endif
+#ifdef ENABLE_TWOFISH
 #include "key_twofish.h"
+#endif
+#ifdef ENABLE_SHA
 #include "msg_sha.h"
+#endif
+#ifdef ENABLE_BER
 #include "key_ber.h"
+#endif
 
 void(*key_handler_buffer[])(struct fileChunk*,struct multiColumnPrinter*) = {
+	#ifdef ENABLE_AES
 	search_AES128_enc_key_big_endian,
 	search_AES128_dec_key_big_endian,
 	search_AES128_enc_key_little_endian,
@@ -25,13 +38,24 @@ void(*key_handler_buffer[])(struct fileChunk*,struct multiColumnPrinter*) = {
 	search_AES256_dec_key_big_endian,
 	search_AES256_enc_key_little_endian,
 	search_AES256_dec_key_little_endian,
+	#endif
+	#ifdef ENABLE_SERPENT
 	search_serpent_key,
-	/*search_des_key, 	*/						/* SLOW - comment if it takes too long */
-	/*search_twofish_key,*/ 					/* SLOW - comment if it takes too long */
+	#endif
+	#ifdef ENABLE_DES
+	search_des_key,
+	#endif
+	#ifdef ENABLE_TWOFISH
+	search_twofish_key,
+	#endif
+	#ifdef ENABLE_SHA
 	search_sha1_msg,
 	search_sha256_msg,
 	search_sha512_msg,
+	#endif
+	#ifdef ENABLE_BER
 	search_ber_key,
+	#endif
 	NULL
 };
 
@@ -46,30 +70,47 @@ int32_t main(int32_t argc, char** argv){
 		return EXIT_FAILURE;
 	}
 
+	#ifdef ENABLE_AES
 	if (init_aes_key){
 		log_err("unable to init AES key");
 		return EXIT_FAILURE;
 	}
+	#endif
+
+	#ifdef ENABLE_SERPENT
 	if (init_serpent_key){
 		log_err("unable to init Serpent key");
 		return EXIT_FAILURE;
 	}
+	#endif
+
+	#ifdef ENABLE_DES
 	if (init_des_key){
 		log_err("unable to init DES key");
 		return EXIT_FAILURE;
 	}
+	#endif
+
+	#ifdef ENABLE_TWOFISH
 	if (init_twofish_key){
 		log_err("unable to init Twofish key");
 		return EXIT_FAILURE;
 	}
+	#endif
+
+	#ifdef ENABLE_SHA
 	if (init_sha_msg){
 		log_err("unable to init SHA msg");
 		return EXIT_FAILURE;
 	}
+	#endif
+
+	#ifdef ENABLE_BER
 	if (init_ber_key){
 		log_err("unable to init BER key");
 		return EXIT_FAILURE;
 	}
+	#endif
 
 	printer = multiColumnPrinter_create(stdout, 6, NULL, NULL, NULL);
 	if (printer == NULL){
@@ -107,12 +148,24 @@ int32_t main(int32_t argc, char** argv){
 		multiColumnPrinter_delete(printer);
 	}
 
+	#ifdef ENABLE_AES
 	clean_aes_key;
+	#endif
+	#ifdef ENABLE_SERPENT
 	clean_serpent_key;
+	#endif
+	#ifdef ENABLE_DES
 	clean_des_key;
+	#endif
+	#ifdef ENABLE_TWOFISH
 	clean_twofish_key;
+	#endif
+	#ifdef ENABLE_SHA
 	clean_sha_msg;
+	#endif
+	#ifdef ENABLE_BER
 	clean_ber_key;
+	#endif
 
 	return EXIT_SUCCESS;
 }

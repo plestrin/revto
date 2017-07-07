@@ -5,15 +5,15 @@
 #include <errno.h>
 #include <string.h>
 
-#define log_err(M) fprintf(stderr, "[ERROR] (%s:%d:) " M "\n", __FILE__, __LINE__)
+#define log_err(M) fprintf(stderr, "[ERROR] (%s:%d) " M "\n", __FILE__, __LINE__)
 
-#define log_warn(M) fprintf(stderr, "[WARN] (%s:%d:) " M "\n", __FILE__, __LINE__)
+#define log_warn(M) fprintf(stderr, "[WARN] (%s:%d) " M "\n", __FILE__, __LINE__)
 
 #define log_info(M) fprintf(stderr, "[INFO] (%s:%d) " M "\n", __FILE__, __LINE__)
 
-#define log_err_m(M, ...) fprintf(stderr, "[ERROR] (%s:%d:) " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define log_err_m(M, ...) fprintf(stderr, "[ERROR] (%s:%d) " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
-#define log_warn_m(M, ...) fprintf(stderr, "[WARN] (%s:%d:) " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define log_warn_m(M, ...) fprintf(stderr, "[WARN] (%s:%d) " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 #define log_info_m(M, ...) fprintf(stderr, "[INFO] (%s:%d) " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
