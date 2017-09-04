@@ -3,6 +3,7 @@
 
 #include "key_twofish.h"
 
+#include "searchCryptoKey.h"
 #include "util.h"
 
 #define TWOFISH_NB_ROUND_KEY		40
@@ -594,18 +595,17 @@ static int32_t attack256(uint8_t* buffer, uint8_t* key, uint32_t offset){
 }
 
 void search_twofish_key(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t* 	round_key;
 	uint32_t 	j;
 	uint8_t 	tmp[TWOFISH_ROUND_KEY_NB_BYTE];
 	uint8_t 	key[TWOFISH_256_NB_BYTE_KEY];
-	char 		key_str[2*TWOFISH_256_NB_BYTE_KEY + 1];
 
-	if (chunk->length < TWOFISH_ROUND_KEY_NB_BYTE){
+	if (chunk->size < TWOFISH_ROUND_KEY_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - TWOFISH_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - TWOFISH_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 		round_key = (uint32_t*)(chunk->buffer + i);
 
 		for (j = 0; j < TWOFISH_NB_ROUND_KEY / 2; j++){
@@ -630,24 +630,21 @@ void search_twofish_key(struct fileChunk* chunk, struct multiColumnPrinter* prin
 
 		if (!attack128(tmp, key, 0)){
 			if (!attack128(tmp, key, 1)){
-				sprintBuffer_raw(key_str, (char*)key, TWOFISH_128_NB_BYTE_KEY);
-				multiColumnPrinter_print(printer, chunk->file_name, "Twofish 128", "l", "-", chunk->offset + i, key_str);
+				searchCryptoKey_report_success((char*)key, TWOFISH_128_NB_BYTE_KEY, chunk->offset + i, _LITTLE_ENDIAN, "TWOFISH128", "-", chunk->file_name, printer);
 				continue;
 			}
 		}
 
 		if (!attack192(tmp, key, 0)){
 			if (!attack192(tmp, key, 1)){
-				sprintBuffer_raw(key_str, (char*)key, TWOFISH_192_NB_BYTE_KEY);
-				multiColumnPrinter_print(printer, chunk->file_name, "Twofish 192", "l", "-", chunk->offset + i, key_str);
+				searchCryptoKey_report_success((char*)key, TWOFISH_192_NB_BYTE_KEY, chunk->offset + i, _LITTLE_ENDIAN, "TWOFISH192", "-", chunk->file_name, printer);
 				continue;
 			}
 		}
 
 		if (!attack256(tmp, key, 0)){
 			if (!attack256(tmp, key, 1)){
-				sprintBuffer_raw(key_str, (char*)key, TWOFISH_256_NB_BYTE_KEY);
-				multiColumnPrinter_print(printer, chunk->file_name, "Twofish 256", "l", "-", chunk->offset + i, key_str);
+				searchCryptoKey_report_success((char*)key, TWOFISH_256_NB_BYTE_KEY, chunk->offset + i, _LITTLE_ENDIAN, "TWOFISH256", "-", chunk->file_name, printer);
 				continue;
 			}
 		}

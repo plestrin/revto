@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "searchCryptoKey.h"
 #include "util.h"
-#include "multiColumn.h"
 
 #ifdef ENABLE_AES
 #include "key_aes.h"
@@ -65,11 +65,6 @@ int32_t main(int32_t argc, char** argv){
 	uint32_t 					j;
 	struct multiColumnPrinter* 	printer;
 
-	if (argc < 2){
-		log_err("Please specify a binary file");
-		return EXIT_FAILURE;
-	}
-
 	#ifdef ENABLE_AES
 	if (init_aes_key){
 		log_err("unable to init AES key");
@@ -112,37 +107,61 @@ int32_t main(int32_t argc, char** argv){
 	}
 	#endif
 
-	printer = multiColumnPrinter_create(stdout, 6, NULL, NULL, NULL);
-	if (printer == NULL){
+	if ((printer = multiColumnPrinter_create(stdout, (argc > 1) ? 6 : 5, NULL, NULL, NULL)) == NULL){
 		log_err("Unable to create multiColumn printer");
 	}
 	else{
-		multiColumnPrinter_set_column_size(printer, 0, 64);
-		multiColumnPrinter_set_column_size(printer, 1, 12);
-		multiColumnPrinter_set_column_size(printer, 2, 6);
-		multiColumnPrinter_set_column_size(printer, 3, 7);
-		multiColumnPrinter_set_column_size(printer, 4, 12);
 
-		multiColumnPrinter_set_column_type(printer, 4, MULTICOLUMN_TYPE_HEX_64);
-		multiColumnPrinter_set_column_type(printer, 5, MULTICOLUMN_TYPE_UNBOUND_STRING);
+		i = 0;
+		if (argc > 1){
+			multiColumnPrinter_set_column_size(printer, 0, 64);
+			multiColumnPrinter_set_title(printer, 0, "FILE");
+			i ++;
+		}
 
-		multiColumnPrinter_set_title(printer, 0, "FILE");
-		multiColumnPrinter_set_title(printer, 1, "NAME");
-		multiColumnPrinter_set_title(printer, 2, "ENDIAN");
-		multiColumnPrinter_set_title(printer, 3, "DEC-ENC");
-		multiColumnPrinter_set_title(printer, 4, "OFFSET");
-		multiColumnPrinter_set_title(printer, 5, "KEY/MSG");
+		multiColumnPrinter_set_column_size(printer, i + 0, 12);
+		multiColumnPrinter_set_column_size(printer, i + 1, 6);
+		multiColumnPrinter_set_column_size(printer, i + 2, 7);
+		multiColumnPrinter_set_column_size(printer, i + 3, 12);
+
+		multiColumnPrinter_set_column_type(printer, i + 3, MULTICOLUMN_TYPE_HEX_64);
+		multiColumnPrinter_set_column_type(printer, i + 4, MULTICOLUMN_TYPE_UNBOUND_STRING);
+
+		multiColumnPrinter_set_title(printer, i + 0, "NAME");
+		multiColumnPrinter_set_title(printer, i + 1, "ENDIAN");
+		multiColumnPrinter_set_title(printer, i + 2, "DEC-ENC");
+		multiColumnPrinter_set_title(printer, i + 3, "OFFSET");
+		multiColumnPrinter_set_title(printer, i + 4, "KEY/MSG");
 
 		multiColumnPrinter_print_header(printer);
 
+		if (argc > 1){
+			for (i = 1; i < argc; i++){
+				if (fileChunk_open(&chunk, argv[i])){
+					log_err("Unable to get first file chunk");
+					continue;
+				}
 
-		for (i = 1; i < argc; i++){
-			fileChunk_init(chunk, argv[i]);
-			while (!fileChunk_get_next(&chunk)){
+				while (fileChunk_get_next(&chunk)){
+					for (j = 0; key_handler_buffer[j] != NULL; j++){
+						key_handler_buffer[j](&chunk, printer);
+					}
+				}
+
+				fileChunk_close(chunk);
+				fileChunk_clean(chunk)
+			}
+		}
+		else{
+			fileChunk_init(chunk, stdin, NULL)
+
+			while (fileChunk_get_next(&chunk)){
 				for (j = 0; key_handler_buffer[j] != NULL; j++){
 					key_handler_buffer[j](&chunk, printer);
 				}
 			}
+
+			fileChunk_clean(chunk)
 		}
 
 		multiColumnPrinter_delete(printer);
@@ -168,4 +187,24 @@ int32_t main(int32_t argc, char** argv){
 	#endif
 
 	return EXIT_SUCCESS;
+}
+
+
+void searchCryptoKey_report_success(const char* buffer, size_t size, off_t offset, enum endianness endian, const char* name, const char* enc_dec_desc, const char* file_name, struct multiColumnPrinter* printer){
+	char* data_str;
+
+	data_str = alloca(2 * size + 1);
+
+	if (endian == _BIG_ENDIAN){
+		sprintBuffer_raw_inv_endian(data_str, buffer, size);
+	}
+	else{
+		sprintBuffer_raw(data_str, buffer, size);
+	}
+	if (file_name == NULL){
+		multiColumnPrinter_print(printer, name, (endian == _BIG_ENDIAN) ? "b" : "c", enc_dec_desc, offset, data_str);
+	}
+	else{
+		multiColumnPrinter_print(printer, file_name, name, (endian == _BIG_ENDIAN) ? "b" : "c", enc_dec_desc, offset, data_str);
+	}
 }

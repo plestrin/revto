@@ -4,6 +4,7 @@
 
 #include "msg_sha.h"
 
+#include "searchCryptoKey.h"
 #include "util.h"
 
 #define SHA1_EXPAND_MSG_NB_BIT 		2560
@@ -52,17 +53,16 @@ static const uint32_t black_listed_msg_sha1[SHA1_NB_BLACK_LISTED_MSG][SHA1_MSG_N
 #define SHA1_MSG_SCHEDULE_MAX 80
 
 void search_sha1_msg(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint32_t* 	msg_buffer;
-	char 		msg_str[2*SHA1_MSG_NB_BYTE + 1];
 	uint32_t 	last_found[4] = {0, 0, 0, 0};
 
-	if (chunk->length < SHA1_EXPAND_MSG_NB_BYTE){
+	if (chunk->size < SHA1_EXPAND_MSG_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - SHA1_EXPAND_MSG_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - SHA1_EXPAND_MSG_NB_BYTE + 1; i += STEP_NB_BYTE){
 		msg_buffer = (uint32_t*)(chunk->buffer + i);
 
 		for (j = 0; j < SHA1_NB_BLACK_LISTED_MSG; j++){
@@ -84,13 +84,7 @@ void search_sha1_msg(struct fileChunk* chunk, struct multiColumnPrinter* printer
 
 		last_found[i % 4] = (j + 1) - SHA1_MSG_SCHEDULE_MIN;
 
-		sprintBuffer_raw_inv_endian(msg_str, (char*)msg_buffer, SHA1_MSG_NB_BYTE);
-		if (j != SHA1_MSG_SCHEDULE_MAX){
-			multiColumnPrinter_print(printer, chunk->file_name, "SHA1", "b", "~ <!>", chunk->offset + i, msg_str);
-		}
-		else{
-			multiColumnPrinter_print(printer, chunk->file_name, "SHA1", "b", "msg", chunk->offset + i, msg_str);
-		}
+		searchCryptoKey_report_success((char*)msg_buffer, SHA1_MSG_NB_BYTE, chunk->offset + i, _BIG_ENDIAN, "SHA1", (j != SHA1_MSG_SCHEDULE_MAX) ? "~ <!>" : "msg", chunk->file_name, printer);
 
 		next:;
 		if (last_found[i % 4] > 0){
@@ -119,17 +113,16 @@ static const uint32_t black_listed_msg_sha256[SHA256_NB_BLACK_LISTED_MSG][SHA256
 #define SHA256_MSG_SCHEDULE_MAX 64
 
 void search_sha256_msg(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint32_t* 	msg_buffer;
-	char 		msg_str[2*SHA256_MSG_NB_BYTE + 1];
 	uint32_t 	last_found[4] = {0, 0, 0, 0};
 
-	if (chunk->length < SHA256_EXPAND_MSG_NB_BYTE){
+	if (chunk->size < SHA256_EXPAND_MSG_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - SHA256_EXPAND_MSG_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - SHA256_EXPAND_MSG_NB_BYTE + 1; i += STEP_NB_BYTE){
 		msg_buffer = (uint32_t*)(chunk->buffer + i);
 
 		for (j = 0; j < SHA256_NB_BLACK_LISTED_MSG; j++){
@@ -151,13 +144,7 @@ void search_sha256_msg(struct fileChunk* chunk, struct multiColumnPrinter* print
 
 		last_found[i % 4] = (j + 1) - SHA256_MSG_SCHEDULE_MIN;
 
-		sprintBuffer_raw_inv_endian(msg_str, (char*)msg_buffer, SHA256_MSG_NB_BYTE);
-		if (j != SHA256_MSG_SCHEDULE_MAX){
-			multiColumnPrinter_print(printer, chunk->file_name, "SHA256", "b", "~ <!>", chunk->offset + i, msg_str);
-		}
-		else{
-			multiColumnPrinter_print(printer, chunk->file_name, "SHA256", "b", "msg", chunk->offset + i, msg_str);
-		}
+		searchCryptoKey_report_success((char*)msg_buffer, SHA256_MSG_NB_BYTE, chunk->offset + i, _BIG_ENDIAN, "SHA256", (j != SHA256_MSG_SCHEDULE_MAX) ? "~ <!>" : "msg", chunk->file_name, printer);
 
 		next:;
 		if (last_found[i % 4] > 0){
@@ -186,17 +173,16 @@ static const uint64_t black_listed_msg_sha512[SHA512_NB_BLACK_LISTED_MSG][SHA512
 #define SHA512_MSG_SCHEDULE_MAX 80
 
 void search_sha512_msg(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint64_t* 	msg_buffer;
-	char 		msg_str[2*SHA512_MSG_NB_BYTE + 1];
 	uint32_t 	last_found[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
-	if (chunk->length < SHA512_EXPAND_MSG_NB_BYTE){
+	if (chunk->size < SHA512_EXPAND_MSG_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - SHA512_EXPAND_MSG_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - SHA512_EXPAND_MSG_NB_BYTE + 1; i += STEP_NB_BYTE){
 		msg_buffer = (uint64_t*)(chunk->buffer + i);
 
 		for (j = 0; j < SHA512_NB_BLACK_LISTED_MSG; j++){
@@ -218,13 +204,7 @@ void search_sha512_msg(struct fileChunk* chunk, struct multiColumnPrinter* print
 
 		last_found[i % 8] = (j + 1) - SHA512_MSG_SCHEDULE_MIN;
 
-		sprintBuffer_raw_inv_endian(msg_str, (char*)msg_buffer, SHA512_MSG_NB_BYTE);
-		if (j != SHA512_MSG_SCHEDULE_MAX){
-			multiColumnPrinter_print(printer, chunk->file_name, "SHA512", "b", "~ <!>", chunk->offset + i, msg_str);
-		}
-		else{
-			multiColumnPrinter_print(printer, chunk->file_name, "SHA512", "b", "msg", chunk->offset + i, msg_str);
-		}
+		searchCryptoKey_report_success((char*)msg_buffer, SHA512_MSG_NB_BYTE, chunk->offset + i, _BIG_ENDIAN, "SHA512", (j != SHA512_MSG_SCHEDULE_MAX) ? "~ <!>" : "msg", chunk->file_name, printer);
 
 		next:;
 		if (last_found[i % 8] > 0){

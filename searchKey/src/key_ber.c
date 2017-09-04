@@ -4,6 +4,8 @@
 
 #include "key_ber.h"
 
+#include "searchCryptoKey.h"
+
 #define BER_MIN_LENGTH 5
 #define BER_FIELD_DESC_MAX_LENGTH 256
 
@@ -90,41 +92,11 @@ struct berField{
 	char 	desc[BER_FIELD_DESC_MAX_LENGTH];
 };
 
-static void ber_print(struct fileChunk* chunk, uint64_t* field_start, uint64_t* field_length, const struct berField* fields, uint32_t nb_field, const char* name, struct multiColumnPrinter* printer){
-	uint32_t 	i;
-	char* 		str_val = NULL;
-	size_t 		str_val_length;
+static inline void ber_print(struct fileChunk* chunk, size_t* field_start, size_t* field_length, const struct berField* fields, uint32_t nb_field, const char* name, struct multiColumnPrinter* printer){
+	uint32_t i;
 
 	for (i = 0; i < nb_field; i++){
-		if (!fields[i].must_print){
-			continue;
-		}
-
-		if (str_val == NULL){
-			str_val_length = field_length[i] * 2 + 1;
-			str_val = malloc(str_val_length);
-			if (str_val == NULL){
-				log_err("unable to allocate memory");
-				return;
-			}
-		}
-		else if (str_val_length < field_length[i] * 2 + 1){
-			str_val_length = field_length[i] * 2 + 1;
-			str_val = (char*)realloc(str_val, str_val_length);
-			if (str_val == NULL){
-				log_err("unable to realloc memory");
-				return;
-			}
-		}
-
-		memset(str_val, 0, field_length[i] * 2 + 1);
-		sprintBuffer_raw(str_val, chunk->buffer + field_start[i], field_length[i]);
-
-		multiColumnPrinter_print(printer, chunk->file_name, name, "b", fields[i].desc, chunk->offset + field_start[i], str_val);
-	}
-
-	if (str_val != NULL){
-		free(str_val);
+		searchCryptoKey_report_success(chunk->buffer + field_start[i], field_length[i], chunk->offset + field_start[i], _LITTLE_ENDIAN, name, fields[i].desc, chunk->file_name, printer);
 	}
 }
 
@@ -168,7 +140,7 @@ static const struct berField ber_frt_rsa_pri_key[BER_FRT_RSA_PRI_KEY_NB_FIELD] =
 	}
 };
 
-static int32_t ber_rsa_pri_key_parse(struct fileChunk* chunk, uint64_t* field_start, uint8_t* field_type, uint64_t* field_length, struct multiColumnPrinter* printer){
+static int32_t ber_rsa_pri_key_parse(struct fileChunk* chunk, size_t* field_start, uint8_t* field_type, size_t* field_length, struct multiColumnPrinter* printer){
 	if (field_type[0] == 0x02 && field_length[0] == 1){
 		ber_print(chunk, field_start, field_length, ber_frt_rsa_pri_key, BER_FRT_RSA_PRI_KEY_NB_FIELD, "BER RSA", printer);
 		return 0;
@@ -189,7 +161,7 @@ static const struct berField ber_frt_rsa_pub_key[BER_FRT_RSA_PUB_KEY_NB_FIELD] =
 	}
 };
 
-static int32_t ber_rsa_pub_key_parse(struct fileChunk* chunk, uint64_t* field_start, uint8_t* field_type, uint64_t* field_length, struct multiColumnPrinter* printer){
+static int32_t ber_rsa_pub_key_parse(struct fileChunk* chunk, size_t* field_start, uint8_t* field_type, size_t* field_length, struct multiColumnPrinter* printer){
 	if (field_type[0] == 0x02 && field_type[1] == 0x02 && field_length[0] >= field_length[1] && field_length[1] > 0){
 		ber_print(chunk, field_start, field_length, ber_frt_rsa_pub_key, BER_FRT_RSA_PUB_KEY_NB_FIELD, "BER RSA", printer);
 		return 0;
@@ -226,7 +198,7 @@ static const struct berField ber_frt_dsa_pri_key[BER_FRT_DSA_PRI_KEY_NB_FIELD] =
 	}
 };
 
-static int32_t ber_dsa_pri_key_parse(struct fileChunk* chunk, uint64_t* field_start, uint8_t* field_type, uint64_t* field_length, struct multiColumnPrinter* printer){
+static int32_t ber_dsa_pri_key_parse(struct fileChunk* chunk, size_t* field_start, uint8_t* field_type, size_t* field_length, struct multiColumnPrinter* printer){
 	if (field_type[0] == 0x02 && field_length[0] == 1){
 		if (field_length[1] >= field_length[2]){ /* Q | (P - 1) */
 			ber_print(chunk, field_start, field_length, ber_frt_dsa_pri_key, BER_FRT_DSA_PRI_KEY_NB_FIELD, "BER DSA", printer);
@@ -253,7 +225,7 @@ static const struct berField ber_frt_dsa_pub_key[BER_FRT_DSA_PUB_KEY_NB_FIELD] =
 	},
 };
 
-static int32_t ber_dsa_pub_key_parse(struct fileChunk* chunk, uint64_t* field_start, uint8_t* field_type, uint64_t* field_length, struct multiColumnPrinter* printer){
+static int32_t ber_dsa_pub_key_parse(struct fileChunk* chunk, size_t* field_start, uint8_t* field_type, size_t* field_length, struct multiColumnPrinter* printer){
 	if (field_type[0] == 0x02 && field_type[2] == 0x02){
 		if (field_length[0] >= field_length[1]){ /* Q | (P - 1) */
 			ber_print(chunk, field_start, field_length, ber_frt_dsa_pub_key, BER_FRT_DSA_PUB_KEY_NB_FIELD, "BER DSA", printer);
@@ -272,7 +244,7 @@ enum berLength{
 	BER_LENGTH_DEFINITE
 };
 
-static enum berLength ber_get_length_type(const uint8_t* buffer, uint64_t length){
+static enum berLength ber_get_length_type(const uint8_t* buffer, size_t length){
 	if (!length){
 		return BER_LENGTH_INVALID;
 	}
@@ -282,7 +254,7 @@ static enum berLength ber_get_length_type(const uint8_t* buffer, uint64_t length
 	else if (buffer[0] == 0xff){
 		return BER_LENGTH_INVALID;
 	}
-	else if ((buffer[0] & 0x80) && (uint64_t)(buffer[0] & 0x7f) >= min(length, 8)){
+	else if ((buffer[0] & 0x80) && (size_t)(buffer[0] & 0x7f) >= min(length, 8)){
 		return BER_LENGTH_INVALID;
 	}
 	else{
@@ -290,8 +262,8 @@ static enum berLength ber_get_length_type(const uint8_t* buffer, uint64_t length
 	}
 }
 
-static uint64_t ber_get_indefinite_length(const uint8_t* buffer, uint64_t length){
-	uint64_t i;
+static size_t ber_get_indefinite_length(const uint8_t* buffer, size_t length){
+	size_t i;
 
 	for (i = 1; i + 1 < length; i++){
 		if (!((buffer[i] | buffer[i + 1]) & 0x3f)){
@@ -302,7 +274,7 @@ static uint64_t ber_get_indefinite_length(const uint8_t* buffer, uint64_t length
 	return length;
 }
 
-static uint64_t ber_get_definite_length(const uint8_t* buffer, uint64_t* offset){
+static size_t ber_get_definite_length(const uint8_t* buffer, size_t* offset){
 	uint32_t i;
 	uint64_t result;
 
@@ -322,14 +294,14 @@ static uint64_t ber_get_definite_length(const uint8_t* buffer, uint64_t* offset)
 	return result;
 }
 
-static uint32_t ber_parse(struct fileChunk* chunk, uint64_t start, uint64_t length, struct multiColumnPrinter* printer){
-	uint64_t 	i;
-	uint64_t 	field_start[BER_FRT_MAX_FIELD];
+static uint32_t ber_parse(struct fileChunk* chunk, size_t start, size_t length, struct multiColumnPrinter* printer){
+	size_t 		i;
+	size_t 		field_start[BER_FRT_MAX_FIELD];
 	uint8_t 	field_type[BER_FRT_MAX_FIELD];
-	uint64_t 	field_length[BER_FRT_MAX_FIELD];
+	size_t 		field_length[BER_FRT_MAX_FIELD];
 	uint32_t 	nb_field;
 
-	log_debug_m("starting BER format @ %llu length %llu", chunk->offset + start, length);
+	log_debug_m("starting BER format @ %llu length %u", chunk->offset + start, length);
 
 	for (i = 0, nb_field = 0; i + 1 < length; ){
 		if (nb_field == BER_FRT_MAX_FIELD){
@@ -352,7 +324,7 @@ static uint32_t ber_parse(struct fileChunk* chunk, uint64_t start, uint64_t leng
 			}
 			case BER_LENGTH_INDEFINITE 	: {
 				if (chunk->buffer[start + i - 1] & 0x20){
-					uint64_t l;
+					size_t l;
 
 					l = ber_get_indefinite_length((uint8_t*)(chunk->buffer + start + i), length - i);
 
@@ -377,10 +349,10 @@ static uint32_t ber_parse(struct fileChunk* chunk, uint64_t start, uint64_t leng
 				break;
 			}
 			case BER_LENGTH_DEFINITE 	: {
-				uint64_t l;
-				uint64_t offset;
+				size_t l;
+				size_t 	offset;
 
-				l = ber_get_definite_length((uint8_t*)(chunk->buffer + start + i), &offset);
+				l = (size_t)ber_get_definite_length((uint8_t*)(chunk->buffer + start + i), &offset);
 
 				log_debug_m("\tBER: length: %llu @ %llu ", l, chunk->offset + start + i);
 
@@ -427,21 +399,21 @@ static uint32_t ber_parse(struct fileChunk* chunk, uint64_t start, uint64_t leng
 }
 
 void search_ber_key(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t i;
+	size_t i;
 
-	if (chunk->length < BER_MIN_LENGTH){
+	if (chunk->size < BER_MIN_LENGTH){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - BER_MIN_LENGTH + 1; i++){
+	for (i = 0; i < chunk->size - BER_MIN_LENGTH + 1; i++){
 		if (chunk->buffer[i] == 0x30){
-			switch (ber_get_length_type((uint8_t*)(chunk->buffer + i + 1), chunk->length - i - 1)){
+			switch (ber_get_length_type((uint8_t*)(chunk->buffer + i + 1), chunk->size - i - 1)){
 				case BER_LENGTH_INVALID 	: {break;}
 				case BER_LENGTH_INDEFINITE 	: {
-					uint64_t length;
+					size_t length;
 
-					length = ber_get_indefinite_length((uint8_t*)(chunk->buffer + i + 1), chunk->length - i - 1);
-					if (length != chunk->length - i - 1){
+					length = ber_get_indefinite_length((uint8_t*)(chunk->buffer + i + 1), chunk->size - i - 1);
+					if (length != chunk->size - i - 1){
 						if (!ber_parse(chunk, i + 2, length, printer)){
 							i += 1 + length + 2;
 						}
@@ -450,11 +422,11 @@ void search_ber_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 					break;
 				}
 				case BER_LENGTH_DEFINITE 	: {
-					uint64_t length;
-					uint64_t offset;
+					size_t length;
+					size_t offset;
 
-					length = ber_get_definite_length((uint8_t*)(chunk->buffer + i + 1), &offset);
-					if (length + i + 1 + offset <= chunk->length){
+					length = (size_t)ber_get_definite_length((uint8_t*)(chunk->buffer + i + 1), &offset);
+					if (length + i + 1 + offset <= chunk->size){
 						if (!ber_parse(chunk, i + 1 + offset, length, printer)){
 							i += offset + length;
 						}

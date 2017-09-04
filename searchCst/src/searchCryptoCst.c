@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <sys/mman.h>
 
 #include "searchCryptoCst.h"
 #include "util.h"
@@ -40,81 +39,69 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine);
 	free((engine).score_buffer); 					\
 	free((engine).value_buffer)
 
-#define searchCryptoCst_clean_score(engine) memset((engine).score_buffer, 0, (engine).score_size)
+#define searchCryptoCst_clean_score(engine) memset((engine)->score_buffer, 0, (engine)->score_size)
 
-static void searchCryptoCst_report_success(char* file_name, struct multiColumnPrinter* printer);
+static void searchCryptoCst_search_file(struct cstEngine* engine, struct fileChunk* chunk);
+static void searchCryptoCst_report_success(const char* file_name, struct multiColumnPrinter* printer);
 
 int main(int32_t argc, char** argv){
 	int32_t 					i;
-	uint64_t 					j;
-	uint32_t 					k;
 	struct multiColumnPrinter* 	printer;
-	uint8_t* 					buffer;
-	uint64_t 					length;
+	struct fileChunk 			chunk;
 	struct cstEngine 			engine;
-	struct cst* 				cst;
 
 	if (searchCryptoCst_init_cstEngine(&engine)){
 		log_err("Unable to initialize the constant engine");
-		return 0;
+		return EXIT_FAILURE;
 	}
 
-	if (argc < 2){
-		log_err("Please specify a binary file");
-		searchCryptoCst_clean_cstEngine(engine);
-		return 0;
-	}
-
-	printer = multiColumnPrinter_create(stdout, 5, NULL, NULL, NULL);
-	if (printer == NULL){
+	if ((printer = multiColumnPrinter_create(stdout, (argc > 1) ? 5 : 4, NULL, NULL, NULL)) == NULL){
 		log_err("Unable to create multiColumn printer");
 	}
 	else{
-		multiColumnPrinter_set_column_size(printer, 0, 64);
-		multiColumnPrinter_set_column_size(printer, 1, 24);
-		multiColumnPrinter_set_column_size(printer, 2, 6);
-		multiColumnPrinter_set_column_size(printer, 3, 12);
-		multiColumnPrinter_set_column_size(printer, 4, 12);
+		i = 0;
+		if (argc > 1){
+			multiColumnPrinter_set_column_size(printer, 0, 64);
+			multiColumnPrinter_set_title(printer, 0, "FILE");
+			i ++;
+		}
 
-		multiColumnPrinter_set_column_type(printer, 3, MULTICOLUMN_TYPE_HEX_64);
-		multiColumnPrinter_set_column_type(printer, 4, MULTICOLUMN_TYPE_HEX_64);
+		multiColumnPrinter_set_column_size(printer, i + 0, 24);
+		multiColumnPrinter_set_column_size(printer, i + 1, 6);
+		multiColumnPrinter_set_column_size(printer, i + 2, 12);
+		multiColumnPrinter_set_column_size(printer, i + 3, 12);
 
-		multiColumnPrinter_set_title(printer, 0, "FILE");
-		multiColumnPrinter_set_title(printer, 1, "NAME");
-		multiColumnPrinter_set_title(printer, 2, "SCORE");
-		multiColumnPrinter_set_title(printer, 3, "MIN OFF");
-		multiColumnPrinter_set_title(printer, 4, "MAX OFF");
+		multiColumnPrinter_set_column_type(printer, i + 2, MULTICOLUMN_TYPE_HEX_64);
+		multiColumnPrinter_set_column_type(printer, i + 3, MULTICOLUMN_TYPE_HEX_64);
 
-		for (i = 1; i < argc; i++){
-			buffer = (uint8_t*)mapFile_map(argv[i], &length);
-			if (buffer == NULL){
-				log_err_m("MapFile failed for: \"%s\"", argv[i]);
-				continue;
-			}
-			else if (!length){
-				continue;
-			}
+		multiColumnPrinter_set_title(printer, i + 0, "NAME");
+		multiColumnPrinter_set_title(printer, i + 1, "SCORE");
+		multiColumnPrinter_set_title(printer, i + 2, "MIN OFF");
+		multiColumnPrinter_set_title(printer, i + 3, "MAX OFF");
 
-			searchCryptoCst_clean_score(engine);
-			for (j = 0; j < length; j++){
-				for (k = 0; k < engine.accelerator[buffer[j]].nb_cst; k++){
-					cst = engine.cst_buffer + engine.accelerator[buffer[j]].offset + k;
-					if (cst->size <= length - j){
-						if (!memcmp(cst->value, buffer + j, cst->size)){
-							engine.score_buffer[cst->score_offset] = 1;
-							if (cst->score->min_offset > j){
-								cst->score->min_offset = j;
-							}
-							if (cst->score->max_offset < j){
-								cst->score->max_offset = j;
-							}
-						}
-					}
+		if (argc > 1){
+			for (i = 1; i < argc; i++){
+				if (fileChunk_open(&chunk, argv[i])){
+					log_err("Unable to get first file chunk");
+					continue;
 				}
-			}
 
-			munmap(buffer, length);
-			searchCryptoCst_report_success(argv[i], printer);
+				searchCryptoCst_search_file(&engine, &chunk);
+
+				fileChunk_close(chunk);
+				fileChunk_clean(chunk)
+
+				searchCryptoCst_report_success(argv[i], printer);
+			}
+		}
+		else{
+			fileChunk_init(chunk, stdin, NULL)
+
+			searchCryptoCst_search_file(&engine, &chunk);
+
+			fileChunk_clean(chunk)
+
+			searchCryptoCst_report_success(NULL, printer);
 		}
 
 		multiColumnPrinter_delete(printer);
@@ -122,7 +109,36 @@ int main(int32_t argc, char** argv){
 
 	searchCryptoCst_clean_cstEngine(engine);
 
-	return 0;
+	return EXIT_SUCCESS;
+}
+
+static void searchCryptoCst_search_file(struct cstEngine* engine, struct fileChunk* chunk){
+	size_t 		j;
+	uint32_t 	k;
+	struct cst* cst;
+	off_t 		offset;
+
+	searchCryptoCst_clean_score(engine);
+
+	while (fileChunk_get_next(chunk)){
+		for (j = 0; j < chunk->size; j++){
+			for (k = 0; k < engine->accelerator[(uint8_t)chunk->buffer[j]].nb_cst; k++){
+				cst = engine->cst_buffer + engine->accelerator[(uint8_t)chunk->buffer[j]].offset + k;
+				if (cst->size <= chunk->size - j){
+					if (!memcmp(cst->value, chunk->buffer + j, cst->size)){
+						offset = fileChunk_get_offset(chunk) + j;
+						engine->score_buffer[cst->score_offset] = 1;
+						if (cst->score->min_offset > offset){
+							cst->score->min_offset = offset;
+						}
+						if (cst->score->max_offset < offset){
+							cst->score->max_offset = offset;
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
@@ -217,7 +233,7 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 					engine->cst_buffer[offset_cst].size 		= cst_descriptor[i].nb_element * cst_descriptor[i].element_size;
 					engine->cst_buffer[offset_cst].value 		= engine->value_buffer + offset_value;
 
-					engine->score_header_buffer[offset_score_header].min_offset = 0xffffffffffffffff;
+					engine->score_header_buffer[offset_score_header].min_offset = 0x7fffffffffffffff;
 					engine->score_header_buffer[offset_score_header].max_offset = 0;
 					engine->score_header_buffer[offset_score_header].score 		= engine->score_buffer + offset_score;
 
@@ -237,7 +253,7 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 					engine->cst_buffer[offset_cst].size 		= cst_descriptor[i].nb_element * cst_descriptor[i].element_size;
 					engine->cst_buffer[offset_cst].value 		= engine->value_buffer + offset_value;
 
-					engine->score_header_buffer[offset_score_header].min_offset = 0xffffffffffffffff;
+					engine->score_header_buffer[offset_score_header].min_offset = 0x7fffffffffffffff;
 					engine->score_header_buffer[offset_score_header].max_offset = 0;
 					engine->score_header_buffer[offset_score_header].score 		= engine->score_buffer + offset_score;
 
@@ -270,11 +286,11 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 				if (cst_descriptor[i].element_size == 4){
 					cst_descriptor[i].score_header = engine->score_header_buffer + offset_score_header;
 
-					engine->score_header_buffer[offset_score_header].min_offset = 0xffffffffffffffff;
+					engine->score_header_buffer[offset_score_header].min_offset = 0x7fffffffffffffff;
 					engine->score_header_buffer[offset_score_header].max_offset = 0;
 					engine->score_header_buffer[offset_score_header].score 		= engine->score_buffer + offset_score;
 
-					for (j = 0; j  < cst_descriptor[i].nb_element; j++){
+					for (j = 0; j < cst_descriptor[i].nb_element; j++){
 						engine->cst_buffer[offset_cst].descriptor 	= cst_descriptor + i;
 						engine->cst_buffer[offset_cst].score 		= engine->score_header_buffer + offset_score_header;
 						engine->cst_buffer[offset_cst].score_offset = offset_score;
@@ -320,7 +336,7 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 
 		for (j = offset_cst; j < nb_cst; j++){
 			if ((uint8_t)i == *(uint8_t*)(engine->cst_buffer[j].value)){
-				if (j !=offset_cst){
+				if (j != offset_cst){
 					memcpy(&tmp, engine->cst_buffer + offset_cst, sizeof(struct cst));
 					memcpy(engine->cst_buffer + offset_cst, engine->cst_buffer + j, sizeof(struct cst));
 					memcpy(engine->cst_buffer + j, &tmp, sizeof(struct cst));
@@ -335,7 +351,7 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 	return 0;
 }
 
-static void searchCryptoCst_report_success(char* file_name, struct multiColumnPrinter* printer){
+static void searchCryptoCst_report_success(const char* file_name, struct multiColumnPrinter* printer){
 	uint32_t 	i;
 	uint32_t 	j;
 	uint8_t 	global_success;
@@ -346,12 +362,15 @@ static void searchCryptoCst_report_success(char* file_name, struct multiColumnPr
 		switch (cst_descriptor[i].type){
 			case CST_TYPE_ARRAY : {
 				if (cst_descriptor[i].score_header != NULL && *(cst_descriptor[i].score_header->score)){
-					if (global_success){
-						multiColumnPrinter_print(printer, "", cst_descriptor[i].name, "100%", cst_descriptor[i].score_header->min_offset,  cst_descriptor[i].score_header->max_offset, NULL);
+					if (file_name == NULL){
+						multiColumnPrinter_print(printer, cst_descriptor[i].name, "100%", cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
+					}
+					else if (global_success){
+						multiColumnPrinter_print(printer, "", cst_descriptor[i].name, "100%", cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
 					}
 					else{
 						global_success = 1;
-						multiColumnPrinter_print(printer, file_name, cst_descriptor[i].name, "100%", cst_descriptor[i].score_header->min_offset,  cst_descriptor[i].score_header->max_offset, NULL);
+						multiColumnPrinter_print(printer, file_name, cst_descriptor[i].name, "100%", cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
 					}
 				}
 				break;
@@ -364,12 +383,16 @@ static void searchCryptoCst_report_success(char* file_name, struct multiColumnPr
 
 					if (local_success >= cst_descriptor[i].score_threshold){
 						snprintf(score_percent, sizeof score_percent, "%u%%", (100 * local_success) / cst_descriptor[i].nb_element);
-						if (global_success){
-							multiColumnPrinter_print(printer, "", cst_descriptor[i].name, score_percent, cst_descriptor[i].score_header->min_offset,  cst_descriptor[i].score_header->max_offset, NULL);
+
+						if (file_name == NULL){
+							multiColumnPrinter_print(printer, cst_descriptor[i].name, score_percent, cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
+						}
+						else if (global_success || file_name == NULL){
+							multiColumnPrinter_print(printer, "", cst_descriptor[i].name, score_percent, cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
 						}
 						else{
 							global_success = 1;
-							multiColumnPrinter_print(printer, file_name, cst_descriptor[i].name, score_percent, cst_descriptor[i].score_header->min_offset,  cst_descriptor[i].score_header->max_offset, NULL);
+							multiColumnPrinter_print(printer, file_name, cst_descriptor[i].name, score_percent, cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
 						}
 					}
 				}

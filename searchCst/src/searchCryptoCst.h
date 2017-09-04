@@ -2,6 +2,7 @@
 #define SEARCHCRYPTOCST_H
 
 #include <stdint.h>
+#include <stdio.h>
 
 enum cstType{
 	CST_TYPE_ARRAY,
@@ -12,9 +13,9 @@ enum cstType{
 #define CST_NAME_MAX_LENGTH 64
 
 struct cstScore{
-	uint64_t min_offset;
-	uint64_t max_offset;
-	uint8_t* score;
+	off_t 		min_offset;
+	off_t 		max_offset;
+	uint8_t* 	score;
 };
 
 struct cstDescriptor{

@@ -1,6 +1,6 @@
 EXE 	:= searchKey
 CC		:= gcc
-CFLAGS	:= -W -Wall -pedantic -Wextra -O3 -std=c99 -DSTEP_NB_BYTE=4 -DFILECHUNCK_OVERLAP=102400 -DFILECHUNCK_MAX_LENGTH=40960000
+CFLAGS	:= -W -Wall -pedantic -Wextra -O3 -std=c99 -DSTEP_NB_BYTE=4 -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE
 OBJ 	:= searchCryptoKey.o util.o multiColumn.o
 
 ENABLE_DEFAULT_AES 		:= 1

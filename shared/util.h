@@ -2,7 +2,6 @@
 #define UTIL_H
 
 #include <stdio.h>
-#include <errno.h>
 #include <string.h>
 
 #define log_err(M) fprintf(stderr, "[ERROR] (%s:%d) " M "\n", __FILE__, __LINE__)
@@ -17,38 +16,44 @@
 
 #define log_info_m(M, ...) fprintf(stderr, "[INFO] (%s:%d) " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
-void* mapFile_map(const char* file_name, uint64_t* size);
-
-#ifndef FILECHUNCK_MAX_LENGTH
-#define FILECHUNCK_MAX_LENGTH 	4096000
+#ifndef FILECHUNCK_MAX_SIZE
+#define FILECHUNCK_MAX_SIZE 	65536
 #endif
 #ifndef FILECHUNCK_OVERLAP
 #define FILECHUNCK_OVERLAP 		4096
 #endif
 
 struct fileChunk{
-	char* 		file_name;
-	int 		file;
-	uint64_t 	file_length;
+	FILE* 		file;
+	const char* file_name;
 	char* 		buffer;
-	uint64_t 	length;
-	uint64_t 	offset;
+	size_t 		size;
+	off_t 		offset;
 };
 
-#define fileChunk_init(chunk, file_name_) 		\
-	(chunk).file_name = file_name_; 			\
-	(chunk).file = -1; 							\
-	(chunk).buffer = NULL
+#define fileChunk_init(chunk, file_, file_name_) 		\
+	(chunk).file 		= file_; 						\
+	(chunk).file_name 	= file_name_; 					\
+	(chunk).buffer 		= NULL;
 
-int32_t fileChunk_get_next(struct fileChunk* chunk);
+int fileChunk_open(struct fileChunk* chunk, const char* file_name);
+size_t fileChunk_get_next(struct fileChunk* chunk);
+
+#define fileChunk_get_offset(chunk) ((chunk)->offset)
+#define fileChunk_close(chunk) fclose((chunk).file)
+#define fileChunk_clean(chunk) 				\
+	if ((chunk).buffer != NULL){ 			\
+		free((chunk).buffer); 				\
+		(chunk).buffer = NULL; 				\
+	}
 
 void inv_endian(char* buffer, uint32_t size);
 
-void fprintBuffer_raw(FILE* file, char* buffer, uint64_t buffer_length);
-void sprintBuffer_raw(char* str, char* buffer, uint64_t buffer_length);
+void fprintBuffer_raw(FILE* file, const char* buffer, size_t buffer_length);
+void sprintBuffer_raw(char* str, const char* buffer, size_t buffer_length);
 
-void fprintBuffer_raw_inv_endian(FILE* file, char* buffer, uint64_t buffer_length);
-void sprintBuffer_raw_inv_endian(char* str, char* buffer, uint64_t buffer_length);
+void fprintBuffer_raw_inv_endian(FILE* file, const char* buffer, size_t buffer_length);
+void sprintBuffer_raw_inv_endian(char* str, const char* buffer, size_t buffer_length);
 
 #ifndef min
 #define min(a, b) (((a) > (b)) ? (b) : (a))

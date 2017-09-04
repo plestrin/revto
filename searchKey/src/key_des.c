@@ -4,6 +4,7 @@
 
 #include "key_des.h"
 
+#include "searchCryptoKey.h"
 #include "util.h"
 
 #define DES_DUMP_RAW_KEY 		0
@@ -249,7 +250,7 @@ static inline void des_load_round_key_backward_fmt1(uint8_t* round_key, uint8_t*
 }
 
 void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint32_t 	k;
 	uint8_t* 	round_key;
@@ -258,13 +259,15 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 	uint8_t 	tmp2[8];
 	uint32_t 	tmp1[2];
 	uint32_t 	cd[2];
+	#if DES_DUMP_RAW_KEY == 1
 	char 		key_str[2*DES_KEY_NB_BYTE + 1];
+	#endif
 
-	if (chunk->length < DES_ROUND_KEY_NB_BYTE){
+	if (chunk->size < DES_ROUND_KEY_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - DES_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - DES_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 
 		/* FORWARD FMT1 */
 		round_key = (uint8_t*)(chunk->buffer + i);
@@ -368,8 +371,7 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 
 		if (found){
 			des_get_key((uint8_t*)tmp1, key);
-			sprintBuffer_raw(key_str, (char*)key, DES_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "DES", "-", "enc", chunk->offset + i, key_str);
+			searchCryptoKey_report_success((char*)key, DES_KEY_NB_BYTE, chunk->offset + i, _LITTLE_ENDIAN, "DES", "enc", chunk->file_name, printer);
 
 			#if DES_DUMP_RAW_KEY == 1
 			des_load_round_key_forward_fmt1((uint8_t*)(chunk->buffer + i), tmp2);
@@ -480,8 +482,7 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 
 		if (found){
 			des_get_key((uint8_t*)tmp1, key);
-			sprintBuffer_raw(key_str, (char*)key, DES_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "DES", "-", "enc", chunk->offset + i, key_str);
+			searchCryptoKey_report_success((char*)key, DES_KEY_NB_BYTE, chunk->offset + i, _LITTLE_ENDIAN, "DES", "enc", chunk->file_name, printer);
 
 			#if DES_DUMP_RAW_KEY == 1
 			des_load_round_key_forward_fmt2((uint8_t*)(chunk->buffer + i), tmp2);
@@ -592,8 +593,7 @@ void search_des_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 
 		if (found){
 			des_get_key((uint8_t*)tmp1, key);
-			sprintBuffer_raw(key_str, (char*)key, DES_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "DES", "-", "dec", chunk->offset + i, key_str);
+			searchCryptoKey_report_success((char*)key, DES_KEY_NB_BYTE, chunk->offset + i, _LITTLE_ENDIAN, "DES", "dec", chunk->file_name, printer);
 
 			#if DES_DUMP_RAW_KEY == 1
 			des_load_round_key_backward_fmt1((uint8_t*)(chunk->buffer + i + 8 * 15), tmp2);

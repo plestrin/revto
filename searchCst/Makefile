@@ -1,6 +1,6 @@
 EXE 	:= searchCst
 CC		:= gcc
-CFLAGS	:= -W -Wall -pedantic -Wextra -O3 -std=c99
+CFLAGS	:= -W -Wall -pedantic -Wextra -O3 -std=c99 -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE
 
 .PHONY: clean
 

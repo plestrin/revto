@@ -4,6 +4,7 @@
 #include "key_aes.h"
 
 #include "util.h"
+#include "searchCryptoKey.h"
 
 #define AES128_KEY_NB_BYTE			16
 #define AES128_ROUND_KEY_NB_BYTE 	176
@@ -147,18 +148,17 @@ static inline uint32_t column3_little_endian(uint32_t x){
 #define mix_column_little_endian(x) (column0_little_endian(x) ^ column1_little_endian(x >> 8) ^ column2_little_endian(x >> 16) ^ column3_little_endian(x >> 24))
 
 void search_AES128_enc_key_big_endian(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint32_t* 	round_key;
 	uint32_t 	tmp;
 	uint8_t 	found;
-	char 		key_str[2*AES128_KEY_NB_BYTE + 1];
 
-	if (chunk->length < AES128_ROUND_KEY_NB_BYTE){
+	if (chunk->size < AES128_ROUND_KEY_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - AES128_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - AES128_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 		round_key = (uint32_t*)(chunk->buffer + i);
 		found = 1;
 
@@ -183,8 +183,7 @@ void search_AES128_enc_key_big_endian(struct fileChunk* chunk, struct multiColum
 		}
 
 		if (found){
-			sprintBuffer_raw_inv_endian(key_str, chunk->buffer + i, AES128_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "AES128", "b", "enc", chunk->offset + i, key_str);
+			searchCryptoKey_report_success(chunk->buffer + i, AES128_KEY_NB_BYTE, chunk->offset + i, _BIG_ENDIAN, "AES128", "enc", chunk->file_name, printer);
 		}
 	}
 
@@ -192,18 +191,17 @@ void search_AES128_enc_key_big_endian(struct fileChunk* chunk, struct multiColum
 }
 
 void search_AES128_dec_key_big_endian(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint32_t* 	round_key_dec;
 	uint32_t 	round_key_enc[AES128_ROUND_KEY_NB_WORD - 4];
 	uint8_t 	found;
-	char 		key_str[2*AES128_KEY_NB_BYTE + 1];
 
-	if (chunk->length < AES128_ROUND_KEY_NB_BYTE){
+	if (chunk->size < AES128_ROUND_KEY_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - AES128_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - AES128_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 		round_key_dec = (uint32_t*)(chunk->buffer + i);
 		found = 1;
 
@@ -249,8 +247,7 @@ void search_AES128_dec_key_big_endian(struct fileChunk* chunk, struct multiColum
 				continue;
 			}
 
-			sprintBuffer_raw_inv_endian(key_str, chunk->buffer + i, AES128_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "AES128", "b", "dec", chunk->offset + i, key_str);
+			searchCryptoKey_report_success(chunk->buffer + i, AES128_KEY_NB_BYTE, chunk->offset + i, _BIG_ENDIAN, "AES128", "dec", chunk->file_name, printer);
 		}
 	}
 
@@ -258,18 +255,17 @@ void search_AES128_dec_key_big_endian(struct fileChunk* chunk, struct multiColum
 }
 
 void search_AES128_enc_key_little_endian(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint32_t* 	round_key;
 	uint32_t 	tmp;
 	uint8_t 	found;
-	char 		key_str[2*AES128_KEY_NB_BYTE + 1];
 
-	if (chunk->length < AES128_ROUND_KEY_NB_BYTE){
+	if (chunk->size < AES128_ROUND_KEY_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - AES128_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - AES128_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 		round_key = (uint32_t*)(chunk->buffer + i);
 		found = 1;
 
@@ -294,8 +290,7 @@ void search_AES128_enc_key_little_endian(struct fileChunk* chunk, struct multiCo
 		}
 
 		if (found){
-			sprintBuffer_raw(key_str, chunk->buffer + i, AES128_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "AES128", "l", "enc", chunk->offset + i, key_str);
+			searchCryptoKey_report_success(chunk->buffer + i, AES128_KEY_NB_BYTE, chunk->offset + i, _LITTLE_ENDIAN, "AES128", "enc", chunk->file_name, printer);
 		}
 	}
 
@@ -303,18 +298,17 @@ void search_AES128_enc_key_little_endian(struct fileChunk* chunk, struct multiCo
 }
 
 void search_AES128_dec_key_little_endian(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint32_t* 	round_key_dec;
 	uint32_t 	round_key_enc[AES128_ROUND_KEY_NB_WORD - 4];
 	uint8_t 	found;
-	char 		key_str[2*AES128_KEY_NB_BYTE + 1];
 
-	if (chunk->length < AES128_ROUND_KEY_NB_BYTE){
+	if (chunk->size < AES128_ROUND_KEY_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - AES128_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - AES128_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 		round_key_dec = (uint32_t*)(chunk->buffer + i);
 
 		/* FORWARD */
@@ -362,8 +356,7 @@ void search_AES128_dec_key_little_endian(struct fileChunk* chunk, struct multiCo
 				continue;
 			}
 
-			sprintBuffer_raw(key_str, (char*)round_key_enc, AES128_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "AES128", "l", "dec", chunk->offset + i, key_str);
+			searchCryptoKey_report_success((char*)round_key_enc, AES128_KEY_NB_BYTE, chunk->offset + i, _LITTLE_ENDIAN, "AES128", "dec", chunk->file_name, printer);
 		}
 
 		/* BACKWARD */
@@ -411,8 +404,7 @@ void search_AES128_dec_key_little_endian(struct fileChunk* chunk, struct multiCo
 				continue;
 			}
 
-			sprintBuffer_raw(key_str, (char*)round_key_enc, AES128_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "AES128", "l", "dec", chunk->offset + i, key_str);
+			searchCryptoKey_report_success((char*)round_key_enc, AES128_KEY_NB_BYTE, chunk->offset + i, _LITTLE_ENDIAN, "AES128", "dec", chunk->file_name, printer);
 		}
 	}
 
@@ -420,18 +412,17 @@ void search_AES128_dec_key_little_endian(struct fileChunk* chunk, struct multiCo
 }
 
 void search_AES192_enc_key_big_endian(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint32_t* 	round_key;
 	uint32_t 	tmp;
 	uint8_t 	found;
-	char 		key_str[2*AES192_KEY_NB_BYTE + 1];
 
-	if (chunk->length < AES192_ROUND_KEY_NB_BYTE){
+	if (chunk->size < AES192_ROUND_KEY_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - AES192_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - AES192_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 		round_key = (uint32_t*)(chunk->buffer + i);
 		found = 1;
 
@@ -467,8 +458,7 @@ void search_AES192_enc_key_big_endian(struct fileChunk* chunk, struct multiColum
 		}
 
 		if (found){
-			sprintBuffer_raw_inv_endian(key_str, chunk->buffer + i, AES192_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "AES192", "b", "enc", chunk->offset + i, key_str);
+			searchCryptoKey_report_success(chunk->buffer + i, AES192_KEY_NB_BYTE, chunk->offset + i, _BIG_ENDIAN, "AES192", "enc", chunk->file_name, printer);
 		}
 	}
 
@@ -476,18 +466,17 @@ void search_AES192_enc_key_big_endian(struct fileChunk* chunk, struct multiColum
 }
 
 void search_AES192_dec_key_big_endian(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint32_t* 	round_key_dec;
 	uint32_t 	round_key_enc[AES192_ROUND_KEY_NB_WORD - 4];
 	uint8_t 	found;
-	char 		key_str[2*AES192_KEY_NB_BYTE + 1];
 
-	if (chunk->length < AES192_ROUND_KEY_NB_BYTE){
+	if (chunk->size < AES192_ROUND_KEY_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - AES192_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - AES192_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 		round_key_dec = (uint32_t*)(chunk->buffer + i);
 		found = 1;
 
@@ -546,8 +535,7 @@ void search_AES192_dec_key_big_endian(struct fileChunk* chunk, struct multiColum
 				continue;
 			}
 
-			sprintBuffer_raw_inv_endian(key_str, (char*)round_key_enc, AES192_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "AES192", "b", "dec", chunk->offset + i, key_str);
+			searchCryptoKey_report_success((char*)round_key_enc, AES192_KEY_NB_BYTE, chunk->offset + i, _BIG_ENDIAN, "AES192", "dec", chunk->file_name, printer);
 		}
 	}
 
@@ -555,18 +543,17 @@ void search_AES192_dec_key_big_endian(struct fileChunk* chunk, struct multiColum
 }
 
 void search_AES192_enc_key_little_endian(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint32_t* 	round_key;
 	uint32_t 	tmp;
 	uint8_t 	found;
-	char 		key_str[2*AES192_KEY_NB_BYTE + 1];
 
-	if (chunk->length < AES192_ROUND_KEY_NB_BYTE){
+	if (chunk->size < AES192_ROUND_KEY_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - AES192_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - AES192_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 		round_key = (uint32_t*)(chunk->buffer + i);
 		found = 1;
 
@@ -602,8 +589,7 @@ void search_AES192_enc_key_little_endian(struct fileChunk* chunk, struct multiCo
 		}
 
 		if (found){
-			sprintBuffer_raw(key_str, chunk->buffer + i, AES192_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "AES192", "l", "enc", chunk->offset + i, key_str);
+			searchCryptoKey_report_success(chunk->buffer + i, AES192_KEY_NB_BYTE, chunk->offset + i, _LITTLE_ENDIAN, "AES192", "enc", chunk->file_name, printer);
 		}
 	}
 
@@ -611,18 +597,17 @@ void search_AES192_enc_key_little_endian(struct fileChunk* chunk, struct multiCo
 }
 
 void search_AES192_dec_key_little_endian(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint32_t* 	round_key_dec;
 	uint32_t 	round_key_enc[AES192_ROUND_KEY_NB_WORD - 4];
 	uint8_t 	found;
-	char 		key_str[2*AES192_KEY_NB_BYTE + 1];
 
-	if (chunk->length < AES192_ROUND_KEY_NB_BYTE){
+	if (chunk->size < AES192_ROUND_KEY_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - AES192_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - AES192_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 		round_key_dec = (uint32_t*)(chunk->buffer + i);
 
 		/* FORWARD */
@@ -683,8 +668,7 @@ void search_AES192_dec_key_little_endian(struct fileChunk* chunk, struct multiCo
 				continue;
 			}
 
-			sprintBuffer_raw(key_str, (char*)round_key_enc, AES192_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "AES192", "l", "dec", chunk->offset + i, key_str);
+			searchCryptoKey_report_success((char*)round_key_enc, AES192_KEY_NB_BYTE, chunk->offset + i, _LITTLE_ENDIAN, "AES192", "dec", chunk->file_name, printer);
 		}
 
 		/* BACKWARD */
@@ -745,8 +729,7 @@ void search_AES192_dec_key_little_endian(struct fileChunk* chunk, struct multiCo
 				continue;
 			}
 
-			sprintBuffer_raw(key_str, (char*)round_key_enc, AES192_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "AES192", "l", "dec", chunk->offset + i, key_str);
+			searchCryptoKey_report_success((char*)round_key_enc, AES192_KEY_NB_BYTE, chunk->offset + i, _LITTLE_ENDIAN, "AES192", "dec", chunk->file_name, printer);
 		}
 	}
 
@@ -754,18 +737,17 @@ void search_AES192_dec_key_little_endian(struct fileChunk* chunk, struct multiCo
 }
 
 void search_AES256_enc_key_big_endian(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint32_t* 	round_key;
 	uint32_t 	tmp;
 	uint8_t 	found;
-	char 		key_str[2*AES256_KEY_NB_BYTE + 1];
 
-	if (chunk->length < AES192_ROUND_KEY_NB_BYTE){
+	if (chunk->size < AES192_ROUND_KEY_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - AES192_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - AES192_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 		round_key = (uint32_t*)(chunk->buffer + i);
 		found = 1;
 
@@ -810,8 +792,7 @@ void search_AES256_enc_key_big_endian(struct fileChunk* chunk, struct multiColum
 		}
 
 		if (found){
-			sprintBuffer_raw_inv_endian(key_str, chunk->buffer + i, AES256_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "AES256", "b", "enc", chunk->offset + i, key_str);
+			searchCryptoKey_report_success(chunk->buffer + i, AES256_KEY_NB_BYTE, chunk->offset + i, _BIG_ENDIAN, "AES256", "enc", chunk->file_name, printer);
 		}
 	}
 
@@ -819,18 +800,17 @@ void search_AES256_enc_key_big_endian(struct fileChunk* chunk, struct multiColum
 }
 
 void search_AES256_dec_key_big_endian(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint32_t* 	round_key_dec;
 	uint32_t 	round_key_enc[AES256_ROUND_KEY_NB_WORD - 4];
 	uint8_t 	found;
-	char 		key_str[2*AES256_KEY_NB_BYTE + 1];
 
-	if (chunk->length < AES256_ROUND_KEY_NB_BYTE){
+	if (chunk->size < AES256_ROUND_KEY_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - AES256_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - AES256_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 		round_key_dec = (uint32_t*)(chunk->buffer + i);
 		found = 1;
 
@@ -901,8 +881,7 @@ void search_AES256_dec_key_big_endian(struct fileChunk* chunk, struct multiColum
 				continue;
 			}
 
-			sprintBuffer_raw_inv_endian(key_str, (char*)round_key_enc, AES256_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "AES256", "b", "dec", chunk->offset + i, key_str);
+			searchCryptoKey_report_success((char*)round_key_enc, AES256_KEY_NB_BYTE, chunk->offset + i, _BIG_ENDIAN, "AES256", "dec", chunk->file_name, printer);
 		}
 	}
 
@@ -910,18 +889,17 @@ void search_AES256_dec_key_big_endian(struct fileChunk* chunk, struct multiColum
 }
 
 void search_AES256_enc_key_little_endian(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint32_t* 	round_key;
 	uint32_t 	tmp;
 	uint8_t 	found;
-	char 		key_str[2*AES256_KEY_NB_BYTE + 1];
 
-	if (chunk->length < AES192_ROUND_KEY_NB_BYTE){
+	if (chunk->size < AES192_ROUND_KEY_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - AES192_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - AES192_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 		round_key = (uint32_t*)(chunk->buffer + i);
 		found = 1;
 
@@ -966,8 +944,7 @@ void search_AES256_enc_key_little_endian(struct fileChunk* chunk, struct multiCo
 		}
 
 		if (found){
-			sprintBuffer_raw(key_str, chunk->buffer + i, AES256_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "AES256", "l", "enc", chunk->offset + i, key_str);
+			searchCryptoKey_report_success(chunk->buffer + i, AES256_KEY_NB_BYTE, chunk->offset + i, _LITTLE_ENDIAN, "AES256", "enc", chunk->file_name, printer);
 		}
 	}
 
@@ -975,18 +952,17 @@ void search_AES256_enc_key_little_endian(struct fileChunk* chunk, struct multiCo
 }
 
 void search_AES256_dec_key_little_endian(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t 	j;
 	uint32_t* 	round_key_dec;
 	uint32_t 	round_key_enc[AES256_ROUND_KEY_NB_WORD - 4];
 	uint8_t 	found;
-	char 		key_str[2*AES256_KEY_NB_BYTE + 1];
 
-	if (chunk->length < AES256_ROUND_KEY_NB_BYTE){
+	if (chunk->size < AES256_ROUND_KEY_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - AES256_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - AES256_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 		round_key_dec = (uint32_t*)(chunk->buffer + i);
 
 		/* FORWARD */
@@ -1059,8 +1035,7 @@ void search_AES256_dec_key_little_endian(struct fileChunk* chunk, struct multiCo
 				continue;
 			}
 
-			sprintBuffer_raw(key_str, (char*)round_key_enc, AES256_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "AES256", "l", "dec", chunk->offset + i, key_str);
+			searchCryptoKey_report_success((char*)round_key_enc, AES256_KEY_NB_BYTE, chunk->offset + i, _LITTLE_ENDIAN, "AES256", "dec", chunk->file_name, printer);
 		}
 
 		/* BACKWARD */
@@ -1133,8 +1108,7 @@ void search_AES256_dec_key_little_endian(struct fileChunk* chunk, struct multiCo
 				continue;
 			}
 
-			sprintBuffer_raw(key_str, (char*)round_key_enc, AES256_KEY_NB_BYTE);
-			multiColumnPrinter_print(printer, chunk->file_name, "AES256", "l", "dec", chunk->offset + i, key_str);
+			searchCryptoKey_report_success((char*)round_key_enc, AES256_KEY_NB_BYTE, chunk->offset + i, _LITTLE_ENDIAN, "AES256", "dec", chunk->file_name, printer);
 		}
 	}
 

@@ -3,6 +3,7 @@
 
 #include "key_serpent.h"
 
+#include "searchCryptoKey.h"
 #include "util.h"
 
 #define SERPENT_ROUND_KEY_NB_BIT 	4224
@@ -289,17 +290,16 @@
 	}
 
 void search_serpent_key(struct fileChunk* chunk, struct multiColumnPrinter* printer){
-	uint64_t 	i;
+	size_t 		i;
 	uint32_t* 	round_key;
 	uint32_t 	tmp[SERPENT_ROUND_KEY_NB_WORD];
 	uint32_t 	key[SERPENT_KEY_MAX_NB_WORD];
-	char 		key_str[2*SERPENT_KEY_MAX_NB_BYTE + 1];
 
-	if (chunk->length < SERPENT_ROUND_KEY_NB_BYTE){
+	if (chunk->size < SERPENT_ROUND_KEY_NB_BYTE){
 		return;
 	}
 
-	for (i = 0; i < chunk->length - SERPENT_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
+	for (i = 0; i < chunk->size - SERPENT_ROUND_KEY_NB_BYTE + 1; i += STEP_NB_BYTE){
 		round_key = (uint32_t*)(chunk->buffer + i);
 
 		SBoxD3(round_key[0  ], round_key[1  ], round_key[2  ], round_key[3  ], tmp[0  ], tmp[1  ], tmp[2  ], tmp[3  ])
@@ -361,8 +361,7 @@ void search_serpent_key(struct fileChunk* chunk, struct multiColumnPrinter* prin
 		key[1] = ROTATE_R(tmp[1], 11) ^ key[4] ^ key[6] ^ tmp[0] ^ SERPENT_GOLDEN_RATIO ^ 1;
 		key[0] = ROTATE_R(tmp[0], 11) ^ key[3] ^ key[5] ^ key[7] ^ SERPENT_GOLDEN_RATIO ^ 0;
 
-		sprintBuffer_raw(key_str, (char*)key, SERPENT_KEY_MAX_NB_BYTE);
-		multiColumnPrinter_print(printer, chunk->file_name, "Serpent", "l", "-", chunk->offset + i, key_str);
+		searchCryptoKey_report_success((char*)key, SERPENT_KEY_MAX_NB_BYTE, chunk->offset + i, _LITTLE_ENDIAN, "Serpent", "-", chunk->file_name, printer);
 	}
 
 	return;
