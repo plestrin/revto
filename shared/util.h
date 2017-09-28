@@ -42,10 +42,8 @@ size_t fileChunk_get_next(struct fileChunk* chunk);
 #define fileChunk_get_offset(chunk) ((chunk)->offset)
 #define fileChunk_close(chunk) fclose((chunk).file)
 #define fileChunk_clean(chunk) 				\
-	if ((chunk).buffer != NULL){ 			\
-		free((chunk).buffer); 				\
-		(chunk).buffer = NULL; 				\
-	}
+	free((chunk).buffer); 					\
+	(chunk).buffer = NULL;
 
 void inv_endian(char* buffer, uint32_t size);
 

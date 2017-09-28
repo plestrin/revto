@@ -205,18 +205,10 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 	if (engine->cst_buffer == NULL || engine->score_header_buffer == NULL || engine->score_buffer == NULL || engine->value_buffer == NULL){
 		log_err("Unable to allocate memory");
 
-		if (engine->cst_buffer != NULL){
-			free(engine->cst_buffer);
-		}
-		if (engine->score_header_buffer != NULL){
-			free(engine->score_header_buffer);
-		}
-		if (engine->score_buffer != NULL){
-			free(engine->score_buffer);
-		}
-		if (engine->value_buffer != NULL){
-			free(engine->value_buffer);
-		}
+		free(engine->cst_buffer);
+		free(engine->score_header_buffer);
+		free(engine->score_buffer);
+		free(engine->value_buffer);
 
 		return -1;
 	}
