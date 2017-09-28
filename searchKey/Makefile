@@ -10,6 +10,13 @@ ENABLE_DEFAULT_TWOFISH 	:= 0
 ENABLE_DEFAULT_SHA 		:= 1
 ENABLE_DEFAULT_BER 		:= 1
 
+THROUGHPUT_AES 		:= 5.37 MBytes/s
+THROUGHPUT_SERPENT 	:= 100  MBytes/s
+THROUGHPUT_DES 		:= 1.54 MBytes/s
+THROUGHPUT_TWOFISH 	:= 6.16 KBytes/s
+THROUGHPUT_SHA 		:= 50.0 MBytes/s
+THROUGHPUT_BER 		:= 107  MBytes/s
+
 ifeq ($(ENABLE_AES),)
 	ENABLE_AES := $(ENABLE_DEFAULT_AES)
 endif
@@ -65,34 +72,34 @@ all: build $(EXE)
 	@ echo "Algorithm     | Enabled | Indicative Throughput"
 	@ echo "--------------|---------|----------------------"
 ifeq ($(ENABLE_AES),1)
-	@ echo "AES           | yes     | ??"
+	@ echo "AES           | yes     | $(THROUGHPUT_AES)"
 else
-	@ echo "AES           | no      | ??"
+	@ echo "AES           | no      | $(THROUGHPUT_AES)"
 endif
 ifeq ($(ENABLE_SERPENT),1)
-	@ echo "SERPENT       | yes     | ??"
+	@ echo "SERPENT       | yes     | $(THROUGHPUT_SERPENT)"
 else
-	@ echo "SERPENT       | no      | ??"
+	@ echo "SERPENT       | no      | $(THROUGHPUT_SERPENT)"
 endif
 ifeq ($(ENABLE_DES),1)
-	@ echo "DES           | yes     | ??"
+	@ echo "DES           | yes     | $(THROUGHPUT_DES)"
 else
-	@ echo "DES           | no      | ??"
+	@ echo "DES           | no      | $(THROUGHPUT_DES)"
 endif
 ifeq ($(ENABLE_TWOFISH),1)
-	@ echo "TWOFISH       | yes     | ??"
+	@ echo "TWOFISH       | yes     | $(THROUGHPUT_TWOFISH)"
 else
-	@ echo "TWOFISH       | no      | ??"
+	@ echo "TWOFISH       | no      | $(THROUGHPUT_TWOFISH)"
 endif
 ifeq ($(ENABLE_SHA),1)
-	@ echo "SHA           | yes     | ??"
+	@ echo "SHA           | yes     | $(THROUGHPUT_SHA)"
 else
-	@ echo "SHA           | no      | ??"
+	@ echo "SHA           | no      | $(THROUGHPUT_SHA)"
 endif
 ifeq ($(ENABLE_BER),1)
-	@ echo "BER           | yes     | ??"
+	@ echo "BER           | yes     | $(THROUGHPUT_BER)"
 else
-	@ echo "BER           | no      | ??"
+	@ echo "BER           | no      | $(THROUGHPUT_BER)"
 endif
 
 build:
