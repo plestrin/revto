@@ -1,5 +1,5 @@
-#ifndef MSG_SHA1_H
-#define MSG_SHA1_H
+#ifndef MSG_SHA_H
+#define MSG_SHA_H
 
 #include <stdint.h>
 
