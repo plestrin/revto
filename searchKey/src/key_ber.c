@@ -254,7 +254,7 @@ static enum berLength ber_get_length_type(const uint8_t* buffer, size_t length){
 	else if (buffer[0] == 0xff){
 		return BER_LENGTH_INVALID;
 	}
-	else if ((buffer[0] & 0x80) && (size_t)(buffer[0] & 0x7f) >= min(length, 8)){
+	else if ((buffer[0] & 0x80) && (size_t)(buffer[0] & 0x7f) > min(length - 1, 8)){
 		return BER_LENGTH_INVALID;
 	}
 	else{
@@ -368,7 +368,7 @@ static uint32_t ber_parse(struct fileChunk* chunk, size_t start, size_t length, 
 	}
 
 	if (i != length){
-		log_debug_m("\tBER: layout size %llu differs form the sum of the fields %llu", length, i);
+		log_debug_m("\tBER: layout size %llu differs from the sum of the fields %llu", length, i);
 		return -1;
 	}
 
@@ -437,6 +437,4 @@ void search_ber_key(struct fileChunk* chunk, struct multiColumnPrinter* printer)
 			}
 		}
 	}
-
-
 }
