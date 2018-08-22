@@ -54,6 +54,8 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 
+	name_set = set()
+
 	for file_name in args.files:
 		f = open(file_name, 'rb')
 		d = f.read()
@@ -72,16 +74,19 @@ if __name__ == '__main__':
 						h.update(get_modulus(key))
 						name = h.hexdigest()
 
-						if args.out:
-							out_file_name = os.path.join(args.out, name + '.key')
-						else:
-							out_file_name = name + '.key'
+						if not name in name_set:
+							if args.out:
+								out_file_name = os.path.join(args.out, name + '.key')
+							else:
+								out_file_name = name + '.key'
 
-						f = open(out_file_name, 'wb')
-						f.write(key)
-						f.close()
+							f = open(out_file_name, 'wb')
+							f.write(key)
+							f.close()
 
-						nb += 1
+							nb += 1
+							name_set.add(name)
+
 			strt = d.find('\x30\x82', strt + 1)
 
 	if nb:
