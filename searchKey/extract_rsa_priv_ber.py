@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
 			strt = d.find('\x30\x82', strt + 1)
 
-	if nb:
-		sys.stderr.write('[+] ' + str(nb) + ' RSA private key have been found in ' + file_name + '!\n')
-	else:
-		sys.stderr.write('[!] no RSA private key in ' + file_name + '!\n')
+		if nb:
+			sys.stderr.write('\x1b[32m[+]\x1b[0m ' + str(nb) + ' RSA private key have been found in ' + file_name + '\n')
+		else:
+			sys.stderr.write('\x1b[31m[!]\x1b[0m no RSA private key in ' + file_name + '\n')
