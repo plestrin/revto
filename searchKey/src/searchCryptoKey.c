@@ -107,13 +107,13 @@ int32_t main(int32_t argc, char** argv){
 	}
 	#endif
 
-	if ((printer = multiColumnPrinter_create(stdout, (argc > 1) ? 6 : 5, NULL, NULL, NULL)) == NULL){
+	if ((printer = multiColumnPrinter_create(stdout, (argc > 2) ? 6 : 5, NULL, NULL, NULL)) == NULL){
 		log_err("Unable to create multiColumn printer");
 	}
 	else{
 
 		i = 0;
-		if (argc > 1){
+		if (argc > 2){
 			multiColumnPrinter_set_column_size(printer, 0, 64);
 			multiColumnPrinter_set_title(printer, 0, "FILE");
 			i ++;
@@ -189,7 +189,6 @@ int32_t main(int32_t argc, char** argv){
 	return EXIT_SUCCESS;
 }
 
-
 void searchCryptoKey_report_success(const char* buffer, size_t size, off_t offset, enum endianness endian, const char* name, const char* enc_dec_desc, const char* file_name, struct multiColumnPrinter* printer){
 	char* data_str;
 
@@ -201,7 +200,7 @@ void searchCryptoKey_report_success(const char* buffer, size_t size, off_t offse
 	else{
 		sprintBuffer_raw(data_str, buffer, size);
 	}
-	if (file_name == NULL){
+	if (file_name == NULL || printer->nb_column == 5){
 		multiColumnPrinter_print(printer, name, (endian == _BIG_ENDIAN) ? "b" : "c", enc_dec_desc, offset, data_str);
 	}
 	else{
