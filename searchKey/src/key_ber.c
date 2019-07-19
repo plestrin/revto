@@ -95,9 +95,13 @@ struct berField{
 static inline void ber_print(struct fileChunk* chunk, size_t* field_start, size_t* field_length, const struct berField* fields, uint32_t nb_field, const char* name, struct multiColumnPrinter* printer){
 	uint32_t i;
 
+	multiColumnPrinter_print_horizontal_separator(printer);
+
 	for (i = 0; i < nb_field; i++){
 		searchCryptoKey_report_success(chunk->buffer + field_start[i], field_length[i], chunk->offset + field_start[i], _LITTLE_ENDIAN, name, fields[i].desc, chunk->file_name, printer);
 	}
+
+	multiColumnPrinter_print_horizontal_separator(printer);
 }
 
 #define BER_FRT_RSA_PRI_KEY_NB_FIELD 9
