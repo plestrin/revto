@@ -149,6 +149,7 @@ static int32_t ber_rsa_pri_key_parse(struct fileChunk* chunk, size_t* field_star
 	return -1;
 }
 
+#ifdef ENABLE_PUB
 #define BER_FRT_RSA_PUB_KEY_NB_FIELD 2
 static const struct berField ber_frt_rsa_pub_key[BER_FRT_RSA_PUB_KEY_NB_FIELD] = {
 	{
@@ -169,6 +170,7 @@ static int32_t ber_rsa_pub_key_parse(struct fileChunk* chunk, size_t* field_star
 
 	return -1;
 }
+#endif
 
 #define BER_FRT_DSA_PRI_KEY_NB_FIELD 6
 static const struct berField ber_frt_dsa_pri_key[BER_FRT_DSA_PRI_KEY_NB_FIELD] = {
@@ -209,6 +211,7 @@ static int32_t ber_dsa_pri_key_parse(struct fileChunk* chunk, size_t* field_star
 	return -1;
 }
 
+#ifdef ENABLE_PUB
 #define BER_FRT_DSA_PUB_KEY_NB_FIELD 3
 static const struct berField ber_frt_dsa_pub_key[BER_FRT_DSA_PUB_KEY_NB_FIELD] = {
 	{
@@ -235,6 +238,7 @@ static int32_t ber_dsa_pub_key_parse(struct fileChunk* chunk, size_t* field_star
 
 	return -1;
 }
+#endif
 
 #define BER_FRT_MAX_FIELD 9 /* must be updated, if one adds a new format */
 
@@ -379,21 +383,25 @@ static uint32_t ber_parse(struct fileChunk* chunk, size_t start, size_t length, 
 			return 0;
 		}
 	}
+	#ifdef ENABLE_PUB
 	if (nb_field == BER_FRT_RSA_PUB_KEY_NB_FIELD){
 		if (!ber_rsa_pub_key_parse(chunk, field_start, field_type, field_length, printer)){
 			return 0;
 		}
 	}
+	#endif
 	if (nb_field == BER_FRT_DSA_PRI_KEY_NB_FIELD){
 		if (!ber_dsa_pri_key_parse(chunk, field_start, field_type, field_length, printer)){
 			return 0;
 		}
 	}
+	#ifdef ENABLE_PUB
 	if (nb_field == BER_FRT_DSA_PUB_KEY_NB_FIELD){
 		if (!ber_dsa_pub_key_parse(chunk, field_start, field_type, field_length, printer)){
 			return 0;
 		}
 	}
+	#endif
 
 	return -1;
 }

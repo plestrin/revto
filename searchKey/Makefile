@@ -9,6 +9,7 @@ ENABLE_DEFAULT_DES 		:= 0
 ENABLE_DEFAULT_TWOFISH 	:= 0
 ENABLE_DEFAULT_SHA 		:= 1
 ENABLE_DEFAULT_BER 		:= 1
+ENABLE_DEFAULT_PUB 		:= 0
 
 THROUGHPUT_AES 		:= 5.37 MBytes/s
 THROUGHPUT_SERPENT 	:= 100  MBytes/s
@@ -65,6 +66,13 @@ ifeq ($(ENABLE_BER),1)
 	CFLAGS 	:= $(CFLAGS) -DENABLE_BER
 endif
 
+ifeq ($(ENABLE_PUB),)
+	ENABLE_PUB := $(ENABLE_DEFAULT_PUB)
+endif
+ifeq ($(ENABLE_PUB),1)
+	CFLAGS 	:= $(CFLAGS) -DENABLE_BER - DENABLE_PUB
+endif
+
 .PHONY: clean
 
 all: build $(EXE)
@@ -100,6 +108,11 @@ ifeq ($(ENABLE_BER),1)
 	@ echo "BER           | yes     | $(THROUGHPUT_BER)"
 else
 	@ echo "BER           | no      | $(THROUGHPUT_BER)"
+endif
+ifeq ($(ENABLE_PUB),1)
+	@ echo "Public key(s) will be reported!"
+else
+	@ echo "Public key(s) will not be reported!"
 endif
 
 build:
