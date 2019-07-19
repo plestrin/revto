@@ -9,6 +9,7 @@ ENABLE_DEFAULT_DES 		:= 0
 ENABLE_DEFAULT_TWOFISH 	:= 0
 ENABLE_DEFAULT_SHA 		:= 1
 ENABLE_DEFAULT_BER 		:= 1
+ENABLE_DEFAULT_PEM 		:= 1
 ENABLE_DEFAULT_PUB 		:= 0
 
 THROUGHPUT_AES 		:= 5.37 MBytes/s
@@ -17,6 +18,7 @@ THROUGHPUT_DES 		:= 1.54 MBytes/s
 THROUGHPUT_TWOFISH 	:= 6.16 KBytes/s
 THROUGHPUT_SHA 		:= 50.0 MBytes/s
 THROUGHPUT_BER 		:= 107  MBytes/s
+THROUGHPUT_PEM 		:= ??   MBytes/s
 
 ifeq ($(ENABLE_AES),)
 	ENABLE_AES := $(ENABLE_DEFAULT_AES)
@@ -66,11 +68,22 @@ ifeq ($(ENABLE_BER),1)
 	CFLAGS 	:= $(CFLAGS) -DENABLE_BER
 endif
 
+ifeq ($(ENABLE_PEM),)
+	ENABLE_PEM := $(ENABLE_DEFAULT_PEM)
+endif
+ifeq ($(ENABLE_PEM),1)
+	OBJ 	:= $(OBJ) key_pem.o
+	CFLAGS 	:= $(CFLAGS) -DENABLE_PEM
+	ifeq ($(ENABLE_BER),0)
+		OBJ := $(OBJ) key_ber.o
+	endif
+endif
+
 ifeq ($(ENABLE_PUB),)
 	ENABLE_PUB := $(ENABLE_DEFAULT_PUB)
 endif
 ifeq ($(ENABLE_PUB),1)
-	CFLAGS 	:= $(CFLAGS) -DENABLE_BER - DENABLE_PUB
+	CFLAGS 	:= $(CFLAGS) -DENABLE_PUB
 endif
 
 .PHONY: clean
@@ -108,6 +121,11 @@ ifeq ($(ENABLE_BER),1)
 	@ echo "BER           | yes     | $(THROUGHPUT_BER)"
 else
 	@ echo "BER           | no      | $(THROUGHPUT_BER)"
+endif
+ifeq ($(ENABLE_PEM),1)
+	@ echo "PEM           | yes     | $(THROUGHPUT_PEM)"
+else
+	@ echo "PEM           | no      | $(THROUGHPUT_PEM)"
 endif
 ifeq ($(ENABLE_PUB),1)
 	@ echo "Public key(s) will be reported!"

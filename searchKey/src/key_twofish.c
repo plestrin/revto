@@ -24,17 +24,17 @@
 #define TWOFISH_256_NB_BYTE_KEY 	32
 #define TWOFISH_256_NB_WORD_KEY 	8
 
-struct subkeyByteEntry{
+struct subkeyByteEntry {
 	uint32_t nb_key;
 	uint32_t key_offset;
 };
 
-struct twofish192MeetTable{
+struct twofish192MeetTable {
 	struct subkeyByteEntry 	entries[2][4][256];
 	uint8_t 				keys[2][4][256];
 };
 
-struct twofish256MeetTable{
+struct twofish256MeetTable {
 	struct subkeyByteEntry 	entries[2][4][256];
 	uint8_t 				keys[2][4][256*256*2];
 };

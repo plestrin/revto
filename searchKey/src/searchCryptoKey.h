@@ -3,7 +3,7 @@
 
 #include "multiColumn.h"
 
-enum endianness{
+enum endianness {
 	_BIG_ENDIAN,
 	_LITTLE_ENDIAN
 };

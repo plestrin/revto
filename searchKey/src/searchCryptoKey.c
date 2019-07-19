@@ -23,6 +23,9 @@
 #ifdef ENABLE_BER
 #include "key_ber.h"
 #endif
+#ifdef ENABLE_PEM
+#include "key_pem.h"
+#endif
 
 void(*key_handler_buffer[])(struct fileChunk*,struct multiColumnPrinter*) = {
 	#ifdef ENABLE_AES
@@ -55,6 +58,9 @@ void(*key_handler_buffer[])(struct fileChunk*,struct multiColumnPrinter*) = {
 	#endif
 	#ifdef ENABLE_BER
 	search_ber_key,
+	#endif
+	#ifdef ENABLE_PEM
+	search_pem_key,
 	#endif
 	NULL
 };
@@ -107,6 +113,13 @@ int32_t main(int32_t argc, char** argv){
 	}
 	#endif
 
+	#ifdef ENABLE_PEM
+	if (init_pem_key){
+		log_err("unable to init PEM key");
+		return EXIT_FAILURE;
+	}
+	#endif
+
 	if ((printer = multiColumnPrinter_create(stdout, (argc > 2) ? 6 : 5, NULL, NULL, NULL)) == NULL){
 		log_err("Unable to create multiColumn printer");
 	}
@@ -134,7 +147,7 @@ int32_t main(int32_t argc, char** argv){
 		multiColumnPrinter_set_title(printer, i + 3, "OFFSET");
 		multiColumnPrinter_set_title(printer, i + 4, "KEY/MSG");
 
-		printer->flags &= MPRINTER_FLAG_AUTO_HDR;
+		printer->flags = MPRINTER_FLAG_AUTO_HDR;
 
 		if (argc > 1){
 			for (i = 1; i < argc; i++){
@@ -185,6 +198,9 @@ int32_t main(int32_t argc, char** argv){
 	#endif
 	#ifdef ENABLE_BER
 	clean_ber_key;
+	#endif
+	#ifdef ENABLE_PEM
+	clean_pem_key;
 	#endif
 
 	return EXIT_SUCCESS;

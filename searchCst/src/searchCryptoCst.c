@@ -9,7 +9,7 @@
 
 extern struct cstDescriptor cst_descriptor[];
 
-struct cst{
+struct cst {
 	struct cstDescriptor* 	descriptor;
 	struct cstScore* 		score;
 	uint32_t 				score_offset;
@@ -17,12 +17,12 @@ struct cst{
 	char* 					value;
 };
 
-struct acceleratorEntry{
+struct acceleratorEntry {
 	uint32_t nb_cst;
 	uint32_t offset;
 };
 
-struct cstEngine{
+struct cstEngine {
 	struct acceleratorEntry		accelerator[256];
 	struct cst* 				cst_buffer;
 	struct cstScore* 			score_header_buffer;

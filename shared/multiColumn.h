@@ -9,7 +9,7 @@
 #define MULTICOLUMN_DEFAULT_TYPE		MULTICOLUMN_TYPE_STRING
 #define MULTICOLUMN_STRING_MAX_SIZE		256
 
-enum multiColumnType{
+enum multiColumnType {
 	MULTICOLUMN_TYPE_STRING			= 0,
 	MULTICOLUMN_TYPE_INT8 			= 1,
 	MULTICOLUMN_TYPE_INT32 			= 2,
@@ -23,7 +23,7 @@ enum multiColumnType{
 
 #define MULTICOLUMN_TYPE_IS_VALID(type) ((type) <= MULTICOLUMN_TYPE_BOOL)
 
-struct multiColumnColumn{
+struct multiColumnColumn {
 	uint32_t 					size;
 	char 						title[MULTICOLUMN_STRING_MAX_SIZE];
 	enum multiColumnType 		type;
@@ -32,7 +32,7 @@ struct multiColumnColumn{
 #define MPRINTER_FLAG_AUTO_HDR 0x00000001
 #define MPRINTER_FLAG_NEXT_SPE 0x00000002
 
-struct multiColumnPrinter{
+struct multiColumnPrinter {
 	FILE* 						file;
 	uint32_t 					nb_column;
 	char 						separator[MULTICOLUMN_STRING_MAX_SIZE];

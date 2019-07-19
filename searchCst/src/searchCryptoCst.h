@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-enum cstType{
+enum cstType {
 	CST_TYPE_ARRAY,
 	CST_TYPE_LISTE,
 	CST_TYPE_INVALID
@@ -12,13 +12,13 @@ enum cstType{
 
 #define CST_NAME_MAX_LENGTH 64
 
-struct cstScore{
+struct cstScore {
 	off_t 		min_offset;
 	off_t 		max_offset;
 	uint8_t* 	score;
 };
 
-struct cstDescriptor{
+struct cstDescriptor {
 	enum cstType 		type;
 	uint32_t 			nb_element;
 	uint8_t 			element_size;

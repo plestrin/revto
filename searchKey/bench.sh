@@ -25,32 +25,32 @@ TEMP_FILE=$(mktemp)
 
 # AES
 make clean >> /dev/null
-make ENABLE_AES=1 ENABLE_SERPENT=0 ENABLE_DES=0 ENABLE_TWOFISH=0 ENABLE_SHA=0 ENABLE_BER=0 >> /dev/null
+make ENABLE_AES=1 ENABLE_SERPENT=0 ENABLE_DES=0 ENABLE_TWOFISH=0 ENABLE_SHA=0 ENABLE_BER=0 ENABLE_PEM=0 >> /dev/null
 dd if=/dev/urandom bs=65536 count=256 status=none | time -f "%e" -o $TEMP_FILE --append ./searchKey >> /dev/null
 
 # SERPENT
 make clean >> /dev/null
-make ENABLE_AES=0 ENABLE_SERPENT=1 ENABLE_DES=0 ENABLE_TWOFISH=0 ENABLE_SHA=0 ENABLE_BER=0 >> /dev/null
+make ENABLE_AES=0 ENABLE_SERPENT=1 ENABLE_DES=0 ENABLE_TWOFISH=0 ENABLE_SHA=0 ENABLE_BER=0 ENABLE_PEM=0 >> /dev/null
 dd if=/dev/urandom bs=65536 count=256 status=none | time -f "%e" -o $TEMP_FILE --append ./searchKey >> /dev/null
 
 # DES
 make clean >> /dev/null
-make ENABLE_AES=0 ENABLE_SERPENT=0 ENABLE_DES=1 ENABLE_TWOFISH=0 ENABLE_SHA=0 ENABLE_BER=0 >> /dev/null
+make ENABLE_AES=0 ENABLE_SERPENT=0 ENABLE_DES=1 ENABLE_TWOFISH=0 ENABLE_SHA=0 ENABLE_BER=0 ENABLE_PEM=0 >> /dev/null
 dd if=/dev/urandom bs=65536 count=256 status=none | time -f "%e" -o $TEMP_FILE --append ./searchKey >> /dev/null
 
 # TWOFISH
 make clean >> /dev/null
-make ENABLE_AES=0 ENABLE_SERPENT=0 ENABLE_DES=0 ENABLE_TWOFISH=1 ENABLE_SHA=0 ENABLE_BER=0 >> /dev/null
+make ENABLE_AES=0 ENABLE_SERPENT=0 ENABLE_DES=0 ENABLE_TWOFISH=1 ENABLE_SHA=0 ENABLE_BER=0 ENABLE_PEM=0 >> /dev/null
 dd if=/dev/urandom bs=65536 count=4 status=none | time -f "%e" -o $TEMP_FILE --append ./searchKey >> /dev/null
 
 # SHA
 make clean >> /dev/null
-make ENABLE_AES=0 ENABLE_SERPENT=0 ENABLE_DES=0 ENABLE_TWOFISH=0 ENABLE_SHA=1 ENABLE_BER=0 >> /dev/null
+make ENABLE_AES=0 ENABLE_SERPENT=0 ENABLE_DES=0 ENABLE_TWOFISH=0 ENABLE_SHA=1 ENABLE_BER=0 ENABLE_PEM=0 >> /dev/null
 dd if=/dev/urandom bs=65536 count=256 status=none | time -f "%e" -o $TEMP_FILE --append ./searchKey >> /dev/null
 
 # BER
 make clean >> /dev/null
-make ENABLE_AES=0 ENABLE_SERPENT=0 ENABLE_DES=0 ENABLE_TWOFISH=0 ENABLE_SHA=0 ENABLE_BER=1 >> /dev/null
+make ENABLE_AES=0 ENABLE_SERPENT=0 ENABLE_DES=0 ENABLE_TWOFISH=0 ENABLE_SHA=0 ENABLE_BER=1 ENABLE_PEM=0 >> /dev/null
 dd if=/dev/urandom bs=65536 count=256 status=none | time -f "%e" -o $TEMP_FILE --append ./searchKey >> /dev/null
 
 python -c "$PARSER_SCRIPT" $TEMP_FILE

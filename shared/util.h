@@ -23,7 +23,7 @@
 #define FILECHUNCK_OVERLAP 		4096
 #endif
 
-struct fileChunk{
+struct fileChunk {
 	FILE* 		file;
 	const char* file_name;
 	char* 		buffer;
@@ -45,7 +45,7 @@ size_t fileChunk_get_next(struct fileChunk* chunk);
 	free((chunk).buffer); 					\
 	(chunk).buffer = NULL;
 
-void inv_endian(char* buffer, uint32_t size);
+void inv_endian(char* buffer, size_t size);
 
 void fprintBuffer_raw(FILE* file, const char* buffer, size_t buffer_length);
 void sprintBuffer_raw(char* str, const char* buffer, size_t buffer_length);
@@ -59,5 +59,7 @@ void sprintBuffer_raw_inv_endian(char* str, const char* buffer, size_t buffer_le
 #ifndef max
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #endif
+
+unsigned char* base64_decode(const char* data, size_t input_length, size_t *output_length);
 
 #endif
