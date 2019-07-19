@@ -123,6 +123,7 @@ int32_t main(int32_t argc, char** argv){
 		multiColumnPrinter_set_column_size(printer, i + 1, 6);
 		multiColumnPrinter_set_column_size(printer, i + 2, 7);
 		multiColumnPrinter_set_column_size(printer, i + 3, 12);
+		multiColumnPrinter_set_column_size(printer, i + 4, 32);
 
 		multiColumnPrinter_set_column_type(printer, i + 3, MULTICOLUMN_TYPE_HEX_64);
 		multiColumnPrinter_set_column_type(printer, i + 4, MULTICOLUMN_TYPE_UNBOUND_STRING);
@@ -133,7 +134,7 @@ int32_t main(int32_t argc, char** argv){
 		multiColumnPrinter_set_title(printer, i + 3, "OFFSET");
 		multiColumnPrinter_set_title(printer, i + 4, "KEY/MSG");
 
-		multiColumnPrinter_print_header(printer);
+		printer->flags &= MPRINTER_FLAG_AUTO_HDR;
 
 		if (argc > 1){
 			for (i = 1; i < argc; i++){

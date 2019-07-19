@@ -29,11 +29,14 @@ struct multiColumnColumn{
 	enum multiColumnType 		type;
 };
 
+#define MPRINTER_FLAG_AUTO_HDR 0x00000001
+#define MPRINTER_FLAG_NEXT_SPE 0x00000002
+
 struct multiColumnPrinter{
 	FILE* 						file;
 	uint32_t 					nb_column;
 	char 						separator[MULTICOLUMN_STRING_MAX_SIZE];
-	uint32_t 					auto_header;
+	uint32_t 					flags;
 	struct multiColumnColumn 	columns[1];
 };
 
@@ -44,7 +47,7 @@ void multiColumnPrinter_set_title(struct multiColumnPrinter* printer, uint32_t c
 void multiColumnPrinter_print_header(struct multiColumnPrinter* printer);
 void multiColumnPrinter_print_horizontal_separator(struct multiColumnPrinter* printer);
 void multiColumnPrinter_print(struct multiColumnPrinter* printer, ...);
-void multiColumnPrinter_print_string_line(struct multiColumnPrinter* printer, char* string, uint32_t string_size);
+void multiColumnPrinter_print_string_line(struct multiColumnPrinter* printer, const char* string, uint32_t string_size);
 
 #define multiColumnPrinter_delete(printer) free(printer)
 

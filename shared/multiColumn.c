@@ -22,9 +22,9 @@ struct multiColumnPrinter* multiColumnPrinter_create(FILE* file, uint32_t nb_col
 		return NULL;
 	}
 
-	printer->file 			= file;
-	printer->nb_column 		= nb_column;
-	printer->auto_header 	= 0;
+	printer->file 		= file;
+	printer->nb_column 	= nb_column;
+	printer->flags 		= MPRINTER_FLAG_NEXT_SPE;
 
 	if (separator != NULL){
 		strncpy(printer->separator, separator, MULTICOLUMN_STRING_MAX_SIZE);
@@ -112,9 +112,8 @@ void multiColumnPrinter_set_title(struct multiColumnPrinter* printer, uint32_t c
 
 void multiColumnPrinter_print_header(struct multiColumnPrinter* printer){
 	char 		print_value[MULTICOLUMN_STRING_MAX_SIZE];
-	uint32_t	i;
+	uint32_t 	i;
 
-	printer->auto_header = 1;
 	for (i = 0; i < printer->nb_column; i++){
 		multiColumnPrinter_constrain_string(printer->columns[i].title, print_value, printer->columns[i].size);
 
@@ -133,16 +132,19 @@ void multiColumnPrinter_print_horizontal_separator(struct multiColumnPrinter* pr
 	char 		print_value[MULTICOLUMN_STRING_MAX_SIZE];
 	uint32_t	i;
 
-	for (i = 0; i < printer->nb_column; i++){
-		memset(print_value, '-', printer->columns[i].size);
-		print_value[printer->columns[i].size] = '\0';
+	if (printer->flags & MPRINTER_FLAG_NEXT_SPE){
+		for (i = 0; i < printer->nb_column; i++){
+			memset(print_value, '-', printer->columns[i].size);
+			print_value[printer->columns[i].size] = '\0';
 
-		if (i == printer->nb_column - 1){
-			fprintf(printer->file, "%s\n", print_value);
+			if (i == printer->nb_column - 1){
+				fprintf(printer->file, "%s\n", print_value);
+			}
+			else{
+				fprintf(printer->file, "%s%s", print_value, printer->separator);
+			}
 		}
-		else{
-			fprintf(printer->file, "%s%s", print_value, printer->separator);
-		}
+		printer->flags &= ~MPRINTER_FLAG_NEXT_SPE;
 	}
 }
 
@@ -158,9 +160,12 @@ void multiColumnPrinter_print(struct multiColumnPrinter* printer, ...){
 	va_list 	vl;
 	uint32_t	i;
 
-	if (!printer->auto_header){
+	if (printer->flags & MPRINTER_FLAG_AUTO_HDR){
 		multiColumnPrinter_print_header(printer);
+		printer->flags &= ~MPRINTER_FLAG_AUTO_HDR;
 	}
+
+	printer->flags |= MPRINTER_FLAG_NEXT_SPE;
 
 	va_start(vl, printer);
 
@@ -244,15 +249,18 @@ void multiColumnPrinter_print(struct multiColumnPrinter* printer, ...){
 	va_end(vl);
 }
 
-void multiColumnPrinter_print_string_line(struct multiColumnPrinter* printer, char* string, uint32_t string_size){
+void multiColumnPrinter_print_string_line(struct multiColumnPrinter* printer, const char* string, uint32_t string_size){
 	char 		print_value[MULTICOLUMN_STRING_MAX_SIZE];
-	uint32_t	i;
+	uint32_t 	i;
+
+	if (printer->flags & MPRINTER_FLAG_AUTO_HDR){
+		multiColumnPrinter_print_header(printer);
+		printer->flags &= ~MPRINTER_FLAG_AUTO_HDR;
+	}
+
+	printer->flags |= MPRINTER_FLAG_NEXT_SPE;
 
 	fputc('\r', printer->file);
-
-	if (!printer->auto_header){
-		multiColumnPrinter_print_header(printer);
-	}
 
 	for (i = 0; i < printer->nb_column; i++){
 		multiColumnPrinter_constrain_string(string + (i * string_size), print_value, printer->columns[i].size);
