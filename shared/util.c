@@ -90,15 +90,20 @@ void sprintBuffer_raw(char* str, const char* buffer, size_t buffer_length){
 	size_t 	i;
 	int32_t pointer;
 
-	for (i = 0; i < buffer_length; i++){
-		pointer = sprintf(str, "%c%c", hexa[(buffer[i] >> 4) & 0x0f], hexa[buffer[i] & 0x0f]);
-		if (pointer > 0){
-			str += pointer;
+	if (buffer_length){
+		for (i = 0; i < buffer_length; i++){
+			pointer = sprintf(str, "%c%c", hexa[(buffer[i] >> 4) & 0x0f], hexa[buffer[i] & 0x0f]);
+			if (pointer > 0){
+				str += pointer;
+			}
+			else{
+				log_err("snprintf returns an error code");
+				break;
+			}
 		}
-		else{
-			log_err("snprintf returns an error code");
-			break;
-		}
+	}
+	else{
+		str[0] = 0;
 	}
 }
 
@@ -106,19 +111,24 @@ void sprintBuffer_raw_inv_endian(char* str, const char* buffer, size_t buffer_le
 	size_t 	i;
 	int32_t pointer;
 
-	if (buffer_length % 4){
-		log_err("Buffer length must be a multiple of 4");
-		return;
-	}
+	if (buffer_length){
+		if (buffer_length % 4){
+			log_err("Buffer length must be a multiple of 4");
+			return;
+		}
 
-	for (i = 0; i < buffer_length; i++){
-		pointer = sprintf(str, "%c%c", hexa[(buffer[4*(i/4 + 1) - (i%4) - 1] >> 4) & 0x0f], hexa[buffer[4*(i/4 + 1) - (i%4) - 1] & 0x0f]);
-		if (pointer > 0){
-			str += pointer;
+		for (i = 0; i < buffer_length; i++){
+			pointer = sprintf(str, "%c%c", hexa[(buffer[4*(i/4 + 1) - (i%4) - 1] >> 4) & 0x0f], hexa[buffer[4*(i/4 + 1) - (i%4) - 1] & 0x0f]);
+			if (pointer > 0){
+				str += pointer;
+			}
+			else{
+				log_err("snprintf returns an error code");
+				break;
+			}
 		}
-		else{
-			log_err("snprintf returns an error code");
-			break;
-		}
+	}
+	else{
+		str[0] = 0;
 	}
 }

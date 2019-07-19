@@ -43,7 +43,7 @@ def check(data):
 	return True
 
 def get_modulus(data):
-	size =  struct.unpack('>H', data[9:11])[0]
+	size = struct.unpack('>H', data[9:11])[0]
 	return data[11: 11 + size]
 
 if __name__ == '__main__':
