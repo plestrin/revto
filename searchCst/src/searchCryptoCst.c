@@ -23,12 +23,12 @@ struct acceleratorEntry {
 };
 
 struct cstEngine {
-	struct acceleratorEntry		accelerator[256];
-	struct cst* 				cst_buffer;
-	struct cstScore* 			score_header_buffer;
-	uint8_t* 					score_buffer;
-	uint32_t 					score_size;
-	char* 						value_buffer;
+	struct acceleratorEntry accelerator[256];
+	struct cst* 			cst_buffer;
+	struct cstScore* 		score_header_buffer;
+	uint8_t* 				score_buffer;
+	uint32_t 				score_size;
+	char* 					value_buffer;
 };
 
 static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine);
