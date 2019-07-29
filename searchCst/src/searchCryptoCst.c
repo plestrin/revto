@@ -55,19 +55,19 @@ int main(int32_t argc, char** argv){
 		return EXIT_FAILURE;
 	}
 
-	if ((printer = multiColumnPrinter_create(stdout, (argc > 1) ? 5 : 4, NULL, NULL, NULL)) == NULL){
+	if ((printer = multiColumnPrinter_create(stdout, (argc > 2) ? 5 : 4, NULL, NULL, NULL)) == NULL){
 		log_err("Unable to create multiColumn printer");
 	}
 	else{
 		i = 0;
-		if (argc > 1){
+		if (argc > 2){
 			multiColumnPrinter_set_column_size(printer, 0, 64);
 			multiColumnPrinter_set_title(printer, 0, "FILE");
 			i ++;
 		}
 
 		multiColumnPrinter_set_column_size(printer, i + 0, 24);
-		multiColumnPrinter_set_column_size(printer, i + 1, 6);
+		multiColumnPrinter_set_column_size(printer, i + 1, 5);
 		multiColumnPrinter_set_column_size(printer, i + 2, 12);
 		multiColumnPrinter_set_column_size(printer, i + 3, 12);
 
@@ -78,6 +78,8 @@ int main(int32_t argc, char** argv){
 		multiColumnPrinter_set_title(printer, i + 1, "SCORE");
 		multiColumnPrinter_set_title(printer, i + 2, "MIN OFF");
 		multiColumnPrinter_set_title(printer, i + 3, "MAX OFF");
+
+		printer->flags = MPRINTER_FLAG_AUTO_HDR;
 
 		if (argc > 1){
 			for (i = 1; i < argc; i++){
@@ -354,7 +356,7 @@ static void searchCryptoCst_report_success(const char* file_name, struct multiCo
 		switch (cst_descriptor[i].type){
 			case CST_TYPE_ARRAY : {
 				if (cst_descriptor[i].score_header != NULL && *(cst_descriptor[i].score_header->score)){
-					if (file_name == NULL){
+					if (file_name == NULL || printer->nb_column == 4){
 						multiColumnPrinter_print(printer, cst_descriptor[i].name, "100%", cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
 					}
 					else if (global_success){
@@ -376,7 +378,7 @@ static void searchCryptoCst_report_success(const char* file_name, struct multiCo
 					if (local_success >= cst_descriptor[i].score_threshold){
 						snprintf(score_percent, sizeof score_percent, "%u%%", (100 * local_success) / cst_descriptor[i].nb_element);
 
-						if (file_name == NULL){
+						if (file_name == NULL || printer->nb_column == 4){
 							multiColumnPrinter_print(printer, cst_descriptor[i].name, score_percent, cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
 						}
 						else if (global_success || file_name == NULL){
