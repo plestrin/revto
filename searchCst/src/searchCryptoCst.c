@@ -158,7 +158,7 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 	uint32_t 	j;
 	struct cst 	tmp;
 
-	for (i = 0; ; i++){
+	for (i = 0; cst_descriptor[i].type != CST_TYPE_INVALID; i++){
 		switch (cst_descriptor[i].type){
 			case CST_TYPE_ARRAY : {
 				if (cst_descriptor[i].element_size == 1){
@@ -190,13 +190,11 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 				}
 				break;
 			}
-			case CST_TYPE_INVALID 	: {
-				goto next1;
+			default : {
+				break;
 			}
 		}
 	}
-
-	next1:
 
 	engine->cst_buffer 			= malloc(sizeof(struct cst) * nb_cst);
 	engine->score_header_buffer = malloc(sizeof(struct cstScore) * nb_descriptor);
@@ -381,7 +379,7 @@ static void searchCryptoCst_report_success(const char* file_name, struct multiCo
 						if (file_name == NULL || printer->nb_column == 4){
 							multiColumnPrinter_print(printer, cst_descriptor[i].name, score_percent, cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
 						}
-						else if (global_success || file_name == NULL){
+						else if (global_success){
 							multiColumnPrinter_print(printer, "", cst_descriptor[i].name, score_percent, cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
 						}
 						else{
