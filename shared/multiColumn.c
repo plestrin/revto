@@ -26,11 +26,12 @@ struct multiColumnPrinter* multiColumnPrinter_create(FILE* file, uint32_t nb_col
 	printer->nb_column 	= nb_column;
 	printer->flags 		= MPRINTER_FLAG_NEXT_SPE;
 
+	printer->separator[sizeof printer->separator - 1] = 0;
 	if (separator != NULL){
-		strncpy(printer->separator, separator, MULTICOLUMN_STRING_MAX_SIZE);
+		strncpy(printer->separator, separator, sizeof printer->separator - 1);
 	}
 	else{
-		snprintf(printer->separator, MULTICOLUMN_STRING_MAX_SIZE, "%s", MULTICOLUMN_DEFAULT_SEPARATOR);
+		strncpy(printer->separator, MULTICOLUMN_DEFAULT_SEPARATOR, sizeof printer->separator - 1);
 	}
 
 	for (i = 0; i < nb_column; i++){
@@ -103,7 +104,8 @@ void multiColumnPrinter_set_column_type(struct multiColumnPrinter* printer, uint
 
 void multiColumnPrinter_set_title(struct multiColumnPrinter* printer, uint32_t column, const char* title){
 	if (printer->nb_column > column){
-		strncpy(printer->columns[column].title, title, MULTICOLUMN_STRING_MAX_SIZE);
+		strncpy(printer->columns[column].title, title, MULTICOLUMN_STRING_MAX_SIZE - 1);
+		printer->columns[column].title[MULTICOLUMN_STRING_MAX_SIZE - 1] = 0;
 	}
 	else{
 		log_err("column argument exceeds printer size");
