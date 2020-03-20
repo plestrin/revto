@@ -6623,7 +6623,7 @@ static const uint8_t PKCS_SHA512[PKCS_SHA512_NB_ELEMENT] = {
 };
 
 #define MD5MAC_NB_ELEMENT 		12
-#define MD5MAC_ELEMENT_SIZE 	1
+#define MD5MAC_ELEMENT_SIZE 	4
 #define MD5MAC_NAME 			"MD5MAC"
 #define MD5MAC_THRESHOLD 		1
 
