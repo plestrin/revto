@@ -57,7 +57,7 @@ int main(int32_t argc, char** argv){
 	if ((printer = multiColumnPrinter_create(stdout, (argc > 2) ? 5 : 4, NULL, NULL, NULL)) == NULL){
 		log_err("Unable to create multiColumn printer");
 	}
-	else{
+	else {
 		i = 0;
 		if (argc > 2){
 			multiColumnPrinter_set_column_size(printer, 0, 64);
@@ -95,7 +95,7 @@ int main(int32_t argc, char** argv){
 				searchCryptoCst_report_success(argv[i], printer);
 			}
 		}
-		else{
+		else {
 			fileChunk_init(chunk, stdin, NULL)
 
 			searchCryptoCst_search_file(&engine, &chunk);
@@ -172,7 +172,7 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 					value_size 		+= 2 * cst_descriptor[i].element_size * cst_descriptor[i].nb_element;
 					score_size 		+= 1;
 				}
-				else{
+				else {
 					log_warn_m("This case is not implemented yet, array of element of size %u", cst_descriptor[i].element_size);
 				}
 				break;
@@ -184,7 +184,7 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 					value_size 		+= 2 * cst_descriptor[i].element_size * cst_descriptor[i].nb_element;
 					score_size 		+= cst_descriptor[i].nb_element;
 				}
-				else{
+				else {
 					log_warn_m("This case is not implemented yet, list of element of size %u", cst_descriptor[i].element_size);
 				}
 				break;
@@ -212,7 +212,7 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 		return -1;
 	}
 
-	for (i = 0; ; i++){
+	for (i = 0; cst_descriptor[i].type != CST_TYPE_INVALID; i++){
 		switch (cst_descriptor[i].type){
 			case CST_TYPE_ARRAY : {
 				if (cst_descriptor[i].element_size == 1){
@@ -224,9 +224,7 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 					engine->cst_buffer[offset_cst].size 		= cst_descriptor[i].nb_element * cst_descriptor[i].element_size;
 					engine->cst_buffer[offset_cst].value 		= engine->value_buffer + offset_value;
 
-					engine->score_header_buffer[offset_score_header].min_offset = 0x7fffffffffffffff;
-					engine->score_header_buffer[offset_score_header].max_offset = 0;
-					engine->score_header_buffer[offset_score_header].score 		= engine->score_buffer + offset_score;
+					engine->score_header_buffer[offset_score_header].score = engine->score_buffer + offset_score;
 
 					memcpy(engine->value_buffer + offset_value, cst_descriptor[i].ptr, cst_descriptor[i].nb_element * cst_descriptor[i].element_size);
 
@@ -244,9 +242,7 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 					engine->cst_buffer[offset_cst].size 		= cst_descriptor[i].nb_element * cst_descriptor[i].element_size;
 					engine->cst_buffer[offset_cst].value 		= engine->value_buffer + offset_value;
 
-					engine->score_header_buffer[offset_score_header].min_offset = 0x7fffffffffffffff;
-					engine->score_header_buffer[offset_score_header].max_offset = 0;
-					engine->score_header_buffer[offset_score_header].score 		= engine->score_buffer + offset_score;
+					engine->score_header_buffer[offset_score_header].score = engine->score_buffer + offset_score;
 
 					memcpy(engine->value_buffer + offset_value, cst_descriptor[i].ptr, cst_descriptor[i].nb_element * cst_descriptor[i].element_size);
 
@@ -268,7 +264,7 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 					offset_value 			+= cst_descriptor[i].nb_element * cst_descriptor[i].element_size;
 					offset_score 			+= 1;
 				}
-				else{
+				else {
 					log_warn_m("This case is not implemented yet, array of element of size %u", cst_descriptor[i].element_size);
 				}
 				break;
@@ -277,9 +273,7 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 				if (cst_descriptor[i].element_size == 4){
 					cst_descriptor[i].score_header = engine->score_header_buffer + offset_score_header;
 
-					engine->score_header_buffer[offset_score_header].min_offset = 0x7fffffffffffffff;
-					engine->score_header_buffer[offset_score_header].max_offset = 0;
-					engine->score_header_buffer[offset_score_header].score 		= engine->score_buffer + offset_score;
+					engine->score_header_buffer[offset_score_header].score = engine->score_buffer + offset_score;
 
 					for (j = 0; j < cst_descriptor[i].nb_element; j++){
 						engine->cst_buffer[offset_cst].descriptor 	= cst_descriptor + i;
@@ -308,18 +302,16 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 					}
 					offset_score_header 	+= 1;
 				}
-				else{
+				else {
 					log_warn_m("This case is not implemented yet, list of element of size %u", cst_descriptor[i].element_size);
 				}
 				break;
 			}
-			case CST_TYPE_INVALID 	: {
-				goto next2;
+			default : {
+				break;
 			}
 		}
 	}
-
-	next2:
 
 	for (i = 0, offset_cst = 0; i < 256; i++){
 		engine->accelerator[i].nb_cst = 0;
@@ -349,17 +341,21 @@ static void searchCryptoCst_report_success(const char* file_name, struct multiCo
 	uint32_t 	local_success;
 	char 		score_percent[32];
 
-	for (i = 0, global_success = 0; ; i++){
+	for (i = 0, global_success = 0; cst_descriptor[i].type != CST_TYPE_INVALID; i++){
+		if (cst_descriptor[i].score_header == NULL){
+			continue;
+		}
+
 		switch (cst_descriptor[i].type){
 			case CST_TYPE_ARRAY : {
-				if (cst_descriptor[i].score_header != NULL && *(cst_descriptor[i].score_header->score)){
+				if (*(cst_descriptor[i].score_header->score)){
 					if (file_name == NULL || printer->nb_column == 4){
 						multiColumnPrinter_print(printer, cst_descriptor[i].name, "100%", cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
 					}
 					else if (global_success){
 						multiColumnPrinter_print(printer, "", cst_descriptor[i].name, "100%", cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
 					}
-					else{
+					else {
 						global_success = 1;
 						multiColumnPrinter_print(printer, file_name, cst_descriptor[i].name, "100%", cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
 					}
@@ -367,35 +363,34 @@ static void searchCryptoCst_report_success(const char* file_name, struct multiCo
 				break;
 			}
 			case CST_TYPE_LISTE : {
-				if (cst_descriptor[i].score_header != NULL){
-					for (j = 0, local_success = 0; j < cst_descriptor[i].nb_element; j++){
-						local_success += cst_descriptor[i].score_header->score[j];
+				for (j = 0, local_success = 0; j < cst_descriptor[i].nb_element; j++){
+					local_success += cst_descriptor[i].score_header->score[j];
+				}
+
+				if (local_success >= cst_descriptor[i].score_threshold){
+					snprintf(score_percent, sizeof score_percent, "%u%%", (100 * local_success) / cst_descriptor[i].nb_element);
+
+					if (file_name == NULL || printer->nb_column == 4){
+						multiColumnPrinter_print(printer, cst_descriptor[i].name, score_percent, cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
 					}
-
-					if (local_success >= cst_descriptor[i].score_threshold){
-						snprintf(score_percent, sizeof score_percent, "%u%%", (100 * local_success) / cst_descriptor[i].nb_element);
-
-						if (file_name == NULL || printer->nb_column == 4){
-							multiColumnPrinter_print(printer, cst_descriptor[i].name, score_percent, cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
-						}
-						else if (global_success){
-							multiColumnPrinter_print(printer, "", cst_descriptor[i].name, score_percent, cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
-						}
-						else{
-							global_success = 1;
-							multiColumnPrinter_print(printer, file_name, cst_descriptor[i].name, score_percent, cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
-						}
+					else if (global_success){
+						multiColumnPrinter_print(printer, "", cst_descriptor[i].name, score_percent, cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
+					}
+					else {
+						global_success = 1;
+						multiColumnPrinter_print(printer, file_name, cst_descriptor[i].name, score_percent, cst_descriptor[i].score_header->min_offset, cst_descriptor[i].score_header->max_offset, NULL);
 					}
 				}
 				break;
 			}
-			case CST_TYPE_INVALID 	: {
-				if (global_success){
-					multiColumnPrinter_print_horizontal_separator(printer);
-				}
-				return;
+			default : {
+				break;
 			}
 		}
+	}
+
+	if (global_success){
+		multiColumnPrinter_print_horizontal_separator(printer);
 	}
 }
 
