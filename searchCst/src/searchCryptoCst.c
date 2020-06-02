@@ -27,7 +27,7 @@ struct cstEngine {
 	struct cst* 			cst_buffer;
 	struct cstScore* 		score_header_buffer;
 	uint8_t* 				score_buffer;
-	uint32_t 				score_size;
+	size_t 					score_size;
 	char* 					value_buffer;
 };
 
@@ -39,10 +39,9 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine);
 	free((engine).score_buffer); 					\
 	free((engine).value_buffer)
 
-#define searchCryptoCst_clean_score(engine) memset((engine)->score_buffer, 0, (engine)->score_size)
-
 static void searchCryptoCst_search_file(struct cstEngine* engine, struct fileChunk* chunk);
 static void searchCryptoCst_report_success(const char* file_name, struct multiColumnPrinter* printer);
+static void searchCryptoCst_clean_score(struct cstEngine* engine);
 
 int main(int32_t argc, char** argv){
 	int32_t 					i;
@@ -147,7 +146,7 @@ static int32_t searchCryptoCst_init_cstEngine(struct cstEngine* engine){
 	uint32_t nb_descriptor 	= 0;
 	uint32_t nb_cst 		= 0;
 	uint32_t value_size 	= 0;
-	uint32_t score_size 	= 0;
+	size_t score_size 		= 0;
 
 	uint32_t offset_cst 			= 0;
 	uint32_t offset_score_header 	= 0;
@@ -396,6 +395,19 @@ static void searchCryptoCst_report_success(const char* file_name, struct multiCo
 				}
 				return;
 			}
+		}
+	}
+}
+
+static void searchCryptoCst_clean_score(struct cstEngine* engine){
+	uint32_t i;
+
+	memset(engine->score_buffer, 0, engine->score_size);
+
+	for (i = 0; cst_descriptor[i].type != CST_TYPE_INVALID; i++){
+		if (cst_descriptor[i].score_header != NULL){
+			cst_descriptor[i].score_header->min_offset = 0x7fffffffffffffff;
+			cst_descriptor[i].score_header->max_offset = 0;
 		}
 	}
 }
