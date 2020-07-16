@@ -10,7 +10,8 @@ ENABLE_DEFAULT_TWOFISH 	:= 0
 ENABLE_DEFAULT_SHA 		:= 1
 ENABLE_DEFAULT_BER 		:= 1
 ENABLE_DEFAULT_PEM 		:= 1
-ENABLE_DEFAULT_PUB 		:= 0
+ENABLE_DEFAULT_OPENSSH 	:= 1
+ENABLE_DEFAULT_PUB 		:= 1
 
 THROUGHPUT_AES 		:= 5.37 MBytes/s
 THROUGHPUT_SERPENT 	:= 100  MBytes/s
@@ -19,6 +20,7 @@ THROUGHPUT_TWOFISH 	:= 6.16 KBytes/s
 THROUGHPUT_SHA 		:= 50.0 MBytes/s
 THROUGHPUT_BER 		:= 107  MBytes/s
 THROUGHPUT_PEM 		:= ??   MBytes/s
+THROUGHPUT_OPENSSH  := ??   MBytes/s
 
 ifeq ($(ENABLE_AES),)
 	ENABLE_AES := $(ENABLE_DEFAULT_AES)
@@ -79,6 +81,14 @@ ifeq ($(ENABLE_PEM),1)
 	endif
 endif
 
+ifeq ($(ENABLE_OPENSSH),)
+	ENABLE_OPENSSH := $(ENABLE_DEFAULT_OPENSSH)
+endif
+ifeq ($(ENABLE_OPENSSH),1)
+	OBJ 	:= $(OBJ) key_openssh.o
+	CFLAGS 	:= $(CFLAGS) -DENABLE_OPENSSH
+endif
+
 ifeq ($(ENABLE_PUB),)
 	ENABLE_PUB := $(ENABLE_DEFAULT_PUB)
 endif
@@ -126,6 +136,11 @@ ifeq ($(ENABLE_PEM),1)
 	@ echo "PEM           | yes     | $(THROUGHPUT_PEM)"
 else
 	@ echo "PEM           | no      | $(THROUGHPUT_PEM)"
+endif
+ifeq ($(ENABLE_OPENSSH),1)
+	@ echo "OPENSSH       | yes     | $(THROUGHPUT_OPENSSH)"
+else
+	@ echo "OPENSSH       | no      | $(THROUGHPUT_OPENSSH)"
 endif
 ifeq ($(ENABLE_PUB),1)
 	@ echo "Public key(s) will be reported!"

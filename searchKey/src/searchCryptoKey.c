@@ -26,6 +26,9 @@
 #ifdef ENABLE_PEM
 #include "key_pem.h"
 #endif
+#ifdef ENABLE_OPENSSH
+#include "key_openssh.h"
+#endif
 
 void(*key_handler_buffer[])(struct fileChunk*,struct multiColumnPrinter*) = {
 	#ifdef ENABLE_AES
@@ -61,6 +64,9 @@ void(*key_handler_buffer[])(struct fileChunk*,struct multiColumnPrinter*) = {
 	#endif
 	#ifdef ENABLE_PEM
 	search_pem_key,
+	#endif
+	#ifdef ENABLE_OPENSSH
+	search_openssh_key,
 	#endif
 	NULL
 };
@@ -120,10 +126,17 @@ int32_t main(int32_t argc, char** argv){
 	}
 	#endif
 
+	#ifdef ENABLE_OPENSSH
+	if (init_openssh_key){
+		log_err("unable to init OPENSSH key");
+		return EXIT_FAILURE;
+	}
+	#endif
+
 	if ((printer = multiColumnPrinter_create(stdout, (argc > 2) ? 6 : 5, NULL, NULL, NULL)) == NULL){
 		log_err("Unable to create multiColumn printer");
 	}
-	else{
+	else {
 
 		i = 0;
 		if (argc > 2){
@@ -166,7 +179,7 @@ int32_t main(int32_t argc, char** argv){
 				fileChunk_clean(chunk)
 			}
 		}
-		else{
+		else {
 			fileChunk_init(chunk, stdin, NULL)
 
 			while (fileChunk_get_next(&chunk)){
@@ -202,6 +215,9 @@ int32_t main(int32_t argc, char** argv){
 	#ifdef ENABLE_PEM
 	clean_pem_key;
 	#endif
+	#ifdef ENABLE_OPENSSH
+	clean_openssh_key;
+	#endif
 
 	return EXIT_SUCCESS;
 }
@@ -214,13 +230,13 @@ void searchCryptoKey_report_success(const char* buffer, size_t size, off_t offse
 	if (endian == _BIG_ENDIAN){
 		sprintBuffer_raw_inv_endian(data_str, buffer, size);
 	}
-	else{
+	else {
 		sprintBuffer_raw(data_str, buffer, size);
 	}
 	if (file_name == NULL || printer->nb_column == 5){
 		multiColumnPrinter_print(printer, name, (endian == _BIG_ENDIAN) ? "b" : "c", enc_dec_desc, offset, data_str);
 	}
-	else{
+	else {
 		multiColumnPrinter_print(printer, file_name, name, (endian == _BIG_ENDIAN) ? "b" : "c", enc_dec_desc, offset, data_str);
 	}
 }

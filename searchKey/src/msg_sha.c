@@ -76,7 +76,7 @@ void search_sha1_msg(struct fileChunk* chunk, struct multiColumnPrinter* printer
 				if (j < SHA1_MSG_SCHEDULE_MIN + last_found[i % 4]){
 					goto next;
 				}
-				else{
+				else {
 					break;
 				}
 			}
@@ -136,7 +136,7 @@ void search_sha256_msg(struct fileChunk* chunk, struct multiColumnPrinter* print
 				if (j < SHA256_MSG_SCHEDULE_MIN + last_found[i % 4]){
 					goto next;
 				}
-				else{
+				else {
 					break;
 				}
 			}
@@ -196,7 +196,7 @@ void search_sha512_msg(struct fileChunk* chunk, struct multiColumnPrinter* print
 				if (j < SHA512_MSG_SCHEDULE_MIN + last_found[i % 8]){
 					goto next;
 				}
-				else{
+				else {
 					break;
 				}
 			}

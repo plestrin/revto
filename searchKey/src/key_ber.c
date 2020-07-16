@@ -261,7 +261,7 @@ static enum berLength ber_get_length_type(const uint8_t* buffer, size_t length){
 	else if ((buffer[0] & 0x80) && (size_t)(buffer[0] & 0x7f) > min(length - 1, 8)){
 		return BER_LENGTH_INVALID;
 	}
-	else{
+	else {
 		return BER_LENGTH_DEFINITE;
 	}
 }
@@ -290,7 +290,7 @@ static size_t ber_get_definite_length(const uint8_t* buffer, size_t* offset){
 			result |= (uint64_t)(buffer[i]);
 		}
 	}
-	else{
+	else {
 		*offset = 1;
 		result = (uint64_t)(buffer[0]);
 	}
@@ -341,7 +341,7 @@ int ber_parse(struct fileChunk* chunk, size_t start, size_t length, struct ber_f
 					bf->nb_field ++;
 					i += l + 2;
 				}
-				else{
+				else {
 					log_debug_m("\tBER: indefinite length must be used with a composite type @ %llu -> exit", chunk->offset + start + i);
 					return -1;
 				}
