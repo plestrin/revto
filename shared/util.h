@@ -17,10 +17,10 @@
 #define log_info_m(M, ...) fprintf(stderr, "[INFO] (%s:%d) " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 #ifndef FILECHUNCK_MAX_SIZE
-#define FILECHUNCK_MAX_SIZE 	65536
+#define FILECHUNCK_MAX_SIZE 0x40000
 #endif
 #ifndef FILECHUNCK_OVERLAP
-#define FILECHUNCK_OVERLAP 		4096
+#define FILECHUNCK_OVERLAP 0x1000
 #endif
 
 struct fileChunk {
@@ -31,9 +31,9 @@ struct fileChunk {
 	off_t 		offset;
 };
 
-#define fileChunk_init(chunk, file_, file_name_) 		\
-	(chunk).file 		= file_; 						\
-	(chunk).file_name 	= file_name_; 					\
+#define fileChunk_init(chunk, file_, file_name_) 	\
+	(chunk).file 		= file_; 					\
+	(chunk).file_name 	= file_name_; 				\
 	(chunk).buffer 		= NULL;
 
 int fileChunk_open(struct fileChunk* chunk, const char* file_name);
@@ -41,8 +41,8 @@ size_t fileChunk_get_next(struct fileChunk* chunk);
 
 #define fileChunk_get_offset(chunk) ((chunk)->offset)
 #define fileChunk_close(chunk) fclose((chunk).file)
-#define fileChunk_clean(chunk) 				\
-	free((chunk).buffer); 					\
+#define fileChunk_clean(chunk) 	\
+	free((chunk).buffer); 		\
 	(chunk).buffer = NULL;
 
 void inv_endian(char* buffer, size_t size);
