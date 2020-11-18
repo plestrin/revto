@@ -33,13 +33,13 @@ size_t fileChunk_get_next(struct fileChunk* chunk){
 		memmove(chunk->buffer, chunk->buffer + chunk->size - FILECHUNCK_OVERLAP, FILECHUNCK_OVERLAP);
 		chunk->size = FILECHUNCK_OVERLAP;
 	}
-	else{
+	else {
 		chunk->offset += chunk->size;
 		chunk->size = 0;
 		return 0;
 	}
 
-	do{
+	do {
 		size = fread(chunk->buffer + chunk->size, 1, FILECHUNCK_MAX_SIZE - chunk->size, chunk->file);
 		chunk->size += size;
 		if (!size){
@@ -96,13 +96,13 @@ void sprintBuffer_raw(char* str, const char* buffer, size_t buffer_length){
 			if (pointer > 0){
 				str += pointer;
 			}
-			else{
+			else {
 				log_err("snprintf returns an error code");
 				break;
 			}
 		}
 	}
-	else{
+	else {
 		str[0] = 0;
 	}
 }
@@ -122,13 +122,13 @@ void sprintBuffer_raw_inv_endian(char* str, const char* buffer, size_t buffer_le
 			if (pointer > 0){
 				str += pointer;
 			}
-			else{
+			else {
 				log_err("snprintf returns an error code");
 				break;
 			}
 		}
 	}
-	else{
+	else {
 		str[0] = 0;
 	}
 }

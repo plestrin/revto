@@ -30,7 +30,7 @@
 #include "key_openssh.h"
 #endif
 
-void(*key_handler_buffer[])(struct fileChunk*,struct multiColumnPrinter*) = {
+void(*key_handler_buffer[])(struct fileChunk*, struct multiColumnPrinter*) = {
 	#ifdef ENABLE_AES
 	search_AES128_enc_key_big_endian,
 	search_AES128_dec_key_big_endian,

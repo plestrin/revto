@@ -30,7 +30,7 @@ struct multiColumnPrinter* multiColumnPrinter_create(FILE* file, uint32_t nb_col
 	if (separator != NULL){
 		strncpy(printer->separator, separator, sizeof printer->separator - 1);
 	}
-	else{
+	else {
 		strncpy(printer->separator, MULTICOLUMN_DEFAULT_SEPARATOR, sizeof printer->separator - 1);
 	}
 
@@ -40,11 +40,11 @@ struct multiColumnPrinter* multiColumnPrinter_create(FILE* file, uint32_t nb_col
 				log_warn_m("required size for column %u exceeds MULTICOLUMN_STRING_MAX_SIZE, please increment", i);
 				printer->columns[i].size = MULTICOLUMN_STRING_MAX_SIZE - 1;
 			}
-			else{
+			else {
 				printer->columns[i].size = sizes[i];
 			}
 		}
-		else{
+		else {
 			printer->columns[i].size = MULTICOLUMN_DEFAULT_SIZE;
 		}
 		if (types != NULL){
@@ -54,12 +54,12 @@ struct multiColumnPrinter* multiColumnPrinter_create(FILE* file, uint32_t nb_col
 			else if (types[i] == MULTICOLUMN_TYPE_UNBOUND_STRING && i == nb_column - 1){
 				printer->columns[i].type = types[i];
 			}
-			else{
+			else {
 				log_err_m("incorrect type value for column %u", i);
 				printer->columns[i].type = MULTICOLUMN_DEFAULT_TYPE;
 			}
 		}
-		else{
+		else {
 			printer->columns[i].type = MULTICOLUMN_DEFAULT_TYPE;
 		}
 
@@ -76,11 +76,11 @@ void multiColumnPrinter_set_column_size(struct multiColumnPrinter* printer, uint
 			log_warn_m("required size for column %u exceeds MULTICOLUMN_STRING_MAX_SIZE, please increment", column);
 			printer->columns[column].size = MULTICOLUMN_STRING_MAX_SIZE - 1;
 		}
-		else{
+		else {
 			printer->columns[column].size = size;
 		}
 	}
-	else{
+	else {
 		log_err("column argument exceeds printer size");
 	}
 }
@@ -93,11 +93,11 @@ void multiColumnPrinter_set_column_type(struct multiColumnPrinter* printer, uint
 		else if (type == MULTICOLUMN_TYPE_UNBOUND_STRING && column == printer->nb_column - 1){
 			printer->columns[column].type = type;
 		}
-		else{
+		else {
 			log_err("incorrect type value");
 		}
 	}
-	else{
+	else {
 		log_err("column argument exceeds printer size");
 	}
 }
@@ -107,7 +107,7 @@ void multiColumnPrinter_set_title(struct multiColumnPrinter* printer, uint32_t c
 		strncpy(printer->columns[column].title, title, MULTICOLUMN_STRING_MAX_SIZE - 1);
 		printer->columns[column].title[MULTICOLUMN_STRING_MAX_SIZE - 1] = 0;
 	}
-	else{
+	else {
 		log_err("column argument exceeds printer size");
 	}
 }
@@ -124,7 +124,7 @@ void multiColumnPrinter_print_header(struct multiColumnPrinter* printer){
 		if (i == printer->nb_column - 1){
 			fprintf(printer->file, "%s\n", print_value);
 		}
-		else{
+		else {
 			fprintf(printer->file, "%s%s", print_value, printer->separator);
 		}
 	}
@@ -150,7 +150,7 @@ void multiColumnPrinter_print_horizontal_separator(struct multiColumnPrinter* pr
 			if (i == printer->nb_column - 1){
 				fprintf(printer->file, "%s\n", print_value);
 			}
-			else{
+			else {
 				fprintf(printer->file, "%s%s", print_value, printer->separator);
 			}
 		}
@@ -231,7 +231,7 @@ void multiColumnPrinter_print(struct multiColumnPrinter* printer, ...){
 				if ((int32_t)va_arg(vl, int32_t)){
 					value_str = "Y";
 				}
-				else{
+				else {
 					value_str = "N";
 				}
 				break;
@@ -246,11 +246,11 @@ void multiColumnPrinter_print(struct multiColumnPrinter* printer, ...){
 			if (printer->columns[i].type == MULTICOLUMN_TYPE_UNBOUND_STRING){
 				fprintf(printer->file, "%s\n", value_str);
 			}
-			else{
+			else {
 				fprintf(printer->file, "%s\n", print_value);
 			}
 		}
-		else{
+		else {
 			fprintf(printer->file, "%s%s", print_value, printer->separator);
 		}
 	}
@@ -277,7 +277,7 @@ void multiColumnPrinter_print_string_line(struct multiColumnPrinter* printer, co
 		if (i == printer->nb_column - 1){
 			fputs(print_value, printer->file);
 		}
-		else{
+		else {
 			fprintf(printer->file, "%s%s", print_value, printer->separator);
 		}
 	}
@@ -301,7 +301,7 @@ static void multiColumnPrinter_constrain_string(const char* src, char* dst, size
 			dst[size - 1] = '.';
 		}
 	}
-	else{
+	else {
 		memset(dst + length, ' ', size - length);
 	}
 }
