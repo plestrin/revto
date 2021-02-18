@@ -8,7 +8,6 @@
 #include "searchCryptoKey.h"
 #include "util.h"
 
-#if ENABLE_PUB
 static int openssl_read_size(char* buffer, size_t* size_ptr, size_t* off_ptr, uint32_t* value){
 	if (4 > *size_ptr){
 		return -1;
@@ -33,9 +32,12 @@ static void search_openssh_dss(struct fileChunk* chunk, size_t size, size_t offs
 	char* g;
 	size_t g_size;
 	off_t g_off;
-	char* u;
-	size_t u_size;
-	off_t u_off;
+	char* y;
+	size_t y_size;
+	off_t y_off;
+	char* x;
+	size_t x_size;
+	off_t x_off;
 
 	if (openssl_read_size(chunk->buffer, &size, &offset, &item_size)){
 		return;
@@ -96,22 +98,40 @@ static void search_openssh_dss(struct fileChunk* chunk, size_t size, size_t offs
 		return;
 	}
 
-	u = chunk->buffer + offset;
-	u_size = item_size;
-	u_off = offset + chunk->offset;
+	y = chunk->buffer + offset;
+	y_size = item_size;
+	y_off = offset + chunk->offset;
+
+	size -= item_size;
+	offset += item_size;
+
+	if (openssl_read_size(chunk->buffer, &size, &offset, &item_size) || !item_size || item_size > size){
+		#if ENABLE_PUB
+		x = NULL;
+		x_size = 0;
+		x_off = 0;
+		#else
+		return;
+		#endif
+	}
+	else {
+		x = chunk->buffer + offset;
+		x_size = item_size;
+		x_off = offset + chunk->offset;
+	}
 
 	multiColumnPrinter_print_horizontal_separator(printer);
 
 	searchCryptoKey_report_success(p, p_size, p_off, _LITTLE_ENDIAN, "ssh-dss p", "pub", chunk->file_name, printer);
 	searchCryptoKey_report_success(q, q_size, q_off, _LITTLE_ENDIAN, "ssh-dss q", "pub", chunk->file_name, printer);
 	searchCryptoKey_report_success(g, g_size, g_off, _LITTLE_ENDIAN, "ssh-dss g", "pub", chunk->file_name, printer);
-	searchCryptoKey_report_success(u, u_size, u_off, _LITTLE_ENDIAN, "ssh-dss pub", "pub", chunk->file_name, printer);
+	searchCryptoKey_report_success(y, y_size, y_off, _LITTLE_ENDIAN, "ssh-dss y", "pub", chunk->file_name, printer);
+	if (x != NULL){
+		searchCryptoKey_report_success(x, x_size, x_off, _LITTLE_ENDIAN, "ssh-dss x", "priv", chunk->file_name, printer);
+	}
 
 	multiColumnPrinter_print_horizontal_separator(printer);
 }
-#else
-#define search_openssh_dss(chunk, size, offset, printer)
-#endif
 
 #define OPENSSH_MIN_SIZE (8 + 7) // size + "ssh-dss" + size
 
